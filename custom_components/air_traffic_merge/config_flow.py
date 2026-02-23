@@ -279,35 +279,40 @@ class AirTrafficMergeFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry: config_entries.ConfigEntry):
         return AirTrafficMergeOptionsFlow(config_entry)
-
-
 class AirTrafficMergeOptionsFlow(config_entries.OptionsFlow):
-    """Options: only scan_interval + tracking (safe, no editing of entry.data)."""
+    """Options: scan_interval + tracking (safe)."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        self.config_entry = config_entry
+        # NICHT self.config_entry setzen (read-only property in HA)
+        self._entry = config_entry
         self._options = dict(config_entry.options)
 
     async def async_step_init(self, user_input=None):
         if user_input is not None:
             self._options.update(user_input)
+
             if self._options.get(CONF_ENABLE_TRACKING):
                 return await self.async_step_tracking()
+
+            # Tracking aus -> Tracking Felder entfernen
             self._options.pop(CONF_TRACK_MODE, None)
             self._options.pop(CONF_TRACK_CALLSIGNS, None)
             self._options.pop(CONF_TRACK_REGISTRATIONS, None)
+
             return self.async_create_entry(title="", data=self._options)
+
+        # safe defaults (verhindert int(None) usw.)
+        try:
+            scan_default = int(self._options.get(CONF_SCAN_INTERVAL) or DEFAULT_SCAN_INTERVAL)
+        except Exception:
+            scan_default = DEFAULT_SCAN_INTERVAL
+
+        enable_default = bool(self._options.get(CONF_ENABLE_TRACKING, DEFAULT_ENABLE_TRACKING))
 
         schema = vol.Schema(
             {
-                vol.Optional(
-                    CONF_SCAN_INTERVAL,
-                    default=int(self._options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)),
-                ): vol.Coerce(int),
-                vol.Optional(
-                    CONF_ENABLE_TRACKING,
-                    default=bool(self._options.get(CONF_ENABLE_TRACKING, DEFAULT_ENABLE_TRACKING)),
-                ): bool,
+                vol.Optional(CONF_SCAN_INTERVAL, default=scan_default): vol.Coerce(int),
+                vol.Optional(CONF_ENABLE_TRACKING, default=enable_default): bool,
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema)
@@ -315,6 +320,7 @@ class AirTrafficMergeOptionsFlow(config_entries.OptionsFlow):
     async def async_step_tracking(self, user_input=None):
         if user_input is not None:
             self._options.update(user_input)
+
             mode = self._options.get(CONF_TRACK_MODE, DEFAULT_TRACK_MODE)
             if mode not in ("callsign", "registration", "both"):
                 return self.async_show_form(
@@ -323,6 +329,7 @@ class AirTrafficMergeOptionsFlow(config_entries.OptionsFlow):
                     errors={"base": "invalid_track_mode"},
                 )
 
+            # Felder säubern je nach Mode
             if mode not in ("callsign", "both"):
                 self._options.pop(CONF_TRACK_CALLSIGNS, None)
             if mode not in ("registration", "both"):
