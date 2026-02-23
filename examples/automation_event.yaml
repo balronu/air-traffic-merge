@@ -1,0 +1,13 @@
+alias: Air Traffic - Tracked target appeared
+mode: single
+trigger:
+  - platform: event
+    event_type: air_traffic_merge_tracked
+condition:
+  - condition: template
+    value_template: "{{ trigger.event.data.action == 'appeared' }}"
+action:
+  - service: persistent_notification.create
+    data:
+      title: "Tracked aircraft appeared"
+      message: "{{ trigger.event.data.target }} (mode: {{ trigger.event.data.track_mode }})"

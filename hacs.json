@@ -1,0 +1,18 @@
+{
+  "name": "Air Traffic Merge (FR24 + ADS-B)",
+  "content_in_root": false,
+  "render_readme": true,
+  "domains": [
+    "air_traffic_merge"
+  ],
+  "homeassistant": "2024.6.0",
+  "iot_class": "local_polling",
+  "zip_release": true,
+  "filename": "air-traffic-merge.zip",
+  "resources": [
+    {
+      "url": "/hacsfiles/air-traffic-merge/air-traffic-merge-card.js",
+      "type": "module"
+    }
+  ]
+}

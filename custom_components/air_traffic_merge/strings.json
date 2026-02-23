@@ -1,0 +1,22 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Air Traffic Merge",
+        "description": "Select your FR24 sensor, choose ADS-B source (URL or entity), and configure tracking (callsign/registration)."
+      }
+    },
+    "error": {
+      "invalid_url": "Please enter a valid http/https URL.",
+      "missing_entity": "Please select an ADS-B sensor entity."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Air Traffic Merge Options",
+        "description": "Change ADS-B source, scan interval, and tracking."
+      }
+    }
+  }
+}
