@@ -67,18 +67,23 @@ def _validate(user_input: dict) -> dict[str, str]:
     errors: dict[str, str] = {}
     adsb_source = user_input.get(CONF_ADSB_SOURCE, DEFAULT_ADSB_SOURCE)
 
+    # Normalize: None -> "" (HA liefert bei Selectors gerne None)
+    if user_input.get(CONF_ADSB_ENTITY) is None:
+        user_input.pop(CONF_ADSB_ENTITY, None)
+
     if adsb_source == "url":
-        url = str(user_input.get(CONF_ADSB_URL, "")).strip()
+        url = str(user_input.get(CONF_ADSB_URL, "") or "").strip()
         if not (url.startswith("http://") or url.startswith("https://")):
-            errors["base"] = "invalid_url"
-        else:
-            user_input.pop(CONF_ADSB_ENTITY, None)
+            errors[CONF_ADSB_URL] = "invalid_url"      # <- Feldfehler statt base
+        # WICHTIG: Entity darf bei URL-Mode nie mit gespeichert/validiert werden
+        user_input.pop(CONF_ADSB_ENTITY, None)
+
     else:
         ent = user_input.get(CONF_ADSB_ENTITY)
         if not ent:
-            errors["base"] = "missing_entity"
-        else:
-            user_input.pop(CONF_ADSB_URL, None)
+            errors[CONF_ADSB_ENTITY] = "missing_entity"  # <- Feldfehler statt base
+        # WICHTIG: URL darf bei Entity-Mode nicht mit gespeichert werden
+        user_input.pop(CONF_ADSB_URL, None)
 
     return errors
 
