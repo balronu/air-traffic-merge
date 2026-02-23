@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Air Traffic Merge",
-        "description": "Wähle, welche Quellen du nutzen willst.\\n\\n**Beides (FR24 + ADS-B):** Zusammenführen nach Callsign/Registrierung.\\n**Nur FR24:** Nutzt nur den FR24-Sensor (Attribut `flights`).\\n**Nur ADS-B:** Nutzt nur die lokale aircraft.json Quelle.",
+        "description": "Wähle deinen FR24 Sensor, die ADS-B Quelle (URL oder Entity) und Tracking (Callsign/Registrierung).",
         "data": {
           "source_mode": "Quelle",
           "enable_tracking": "Tracking aktivieren"
@@ -11,7 +11,7 @@
       },
       "fr24": {
         "title": "FR24 Sensor",
-        "description": "Wähle deinen Flightradar24 Sensor (muss das Attribut `flights` besitzen).",
+        "description": "Wähle deinen Flightradar24 Sensor (muss das Attribut `flights` haben).",
         "data": {
           "fr24_entity": "FR24 Sensor"
         }
@@ -26,7 +26,7 @@
       },
       "adsb_url": {
         "title": "ADS-B URL",
-        "description": "Gib die URL zur aircraft.json an (z. B. `http://192.168.178.186:8080/data/aircraft.json`).",
+        "description": "Gib die URL zur aircraft.json an. Beispiel: `http://192.168.178.186:8080/data/aircraft.json`",
         "data": {
           "adsb_url": "ADS-B URL"
         }
@@ -40,14 +40,14 @@
       },
       "tracking_mode": {
         "title": "Tracking Modus",
-        "description": "Wähle, ob du nach Callsign (z. B. CHX16), Registrierung (z. B. D-HXYZ) oder beidem tracken willst.",
+        "description": "Wähle Callsign, Registrierung oder beides.",
         "data": {
           "track_mode": "Tracking Modus"
         }
       },
       "tracking_values": {
         "title": "Tracking Werte",
-        "description": "Mehrere Werte mit Komma trennen (z. B. `CHX16,CHX18` oder `D-HXYZ,D-ABCD`).",
+        "description": "Mehrere Werte mit Komma trennen, z. B. `CHX16,CHX18` oder `D-HXYZ,D-ABCD`.",
         "data": {
           "track_callsigns": "Callsigns",
           "track_registrations": "Registrierungen"
