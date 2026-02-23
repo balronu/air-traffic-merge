@@ -3,36 +3,62 @@
     "step": {
       "user": {
         "title": "Air Traffic Merge",
-        "description": "Wähle, welche Datenquellen du nutzen willst."
+        "description": "Wähle, welche Quellen du nutzen willst.\\n\\n**Beides (FR24 + ADS-B):** Zusammenführen nach Callsign/Registrierung.\\n**Nur FR24:** Nutzt nur den FR24-Sensor (Attribut `flights`).\\n**Nur ADS-B:** Nutzt nur die lokale aircraft.json Quelle.",
+        "data": {
+          "source_mode": "Quelle",
+          "enable_tracking": "Tracking aktivieren"
+        }
       },
       "fr24": {
-        "title": "Flightradar24 (FR24)",
-        "description": "Wähle den FR24-Sensor (muss das Attribut attributes.flights besitzen)."
+        "title": "FR24 Sensor",
+        "description": "Wähle deinen Flightradar24 Sensor (muss das Attribut `flights` besitzen).",
+        "data": {
+          "fr24_entity": "FR24 Sensor"
+        }
       },
-      "adsb": {
-        "title": "ADS-B (lokal)",
-        "description": "Wähle, wie ADS-B Daten bereitgestellt werden sollen."
+      "adsb_source": {
+        "title": "ADS-B Quelle",
+        "description": "Wähle, ob du ADS-B per URL (aircraft.json) oder über einen bestehenden Sensor einbinden willst.",
+        "data": {
+          "adsb_source": "ADS-B Quelle",
+          "scan_interval": "Intervall (Sek.)"
+        }
       },
       "adsb_url": {
         "title": "ADS-B URL",
-        "description": "Gib die vollständige URL zur Datei aircraft.json an (inkl. Pfad). Beispiel: {example_url}"
+        "description": "Gib die URL zur aircraft.json an (z. B. `http://192.168.178.186:8080/data/aircraft.json`).",
+        "data": {
+          "adsb_url": "ADS-B URL"
+        }
       },
       "adsb_entity": {
-        "title": "ADS-B Sensor",
-        "description": "Wähle einen Sensor mit attributes.aircraft (z. B. dein REST-Sensor)."
+        "title": "ADS-B Entity",
+        "description": "Wähle einen Sensor, der das Attribut `aircraft` enthält.",
+        "data": {
+          "adsb_entity": "ADS-B Sensor"
+        }
       },
-      "tracking_gate": {
-        "title": "Tracking",
-        "description": "Möchtest du ein Callsign oder eine Registrierung gezielt tracken?"
+      "tracking_mode": {
+        "title": "Tracking Modus",
+        "description": "Wähle, ob du nach Callsign (z. B. CHX16), Registrierung (z. B. D-HXYZ) oder beidem tracken willst.",
+        "data": {
+          "track_mode": "Tracking Modus"
+        }
       },
-      "tracking": {
-        "title": "Tracking Details",
-        "description": "Trage Callsigns/Registrierungen kommasepariert ein (z. B. CHX16, D-HXYZ)."
+      "tracking_values": {
+        "title": "Tracking Werte",
+        "description": "Mehrere Werte mit Komma trennen (z. B. `CHX16,CHX18` oder `D-HXYZ,D-ABCD`).",
+        "data": {
+          "track_callsigns": "Callsigns",
+          "track_registrations": "Registrierungen"
+        }
       }
     },
     "error": {
-      "invalid_url": "Bitte eine gültige URL angeben (http:// oder https://).",
-      "missing_entity": "Bitte eine Entität auswählen."
+      "invalid_source_mode": "Ungültige Quellen-Auswahl.",
+      "missing_entity": "Bitte eine Entity auswählen.",
+      "invalid_url": "Bitte eine gültige URL angeben.",
+      "invalid_track_mode": "Ungültiger Tracking-Modus."
     }
   }
 }
