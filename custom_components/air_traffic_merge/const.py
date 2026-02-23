@@ -1,32 +1,33 @@
 DOMAIN = "air_traffic_merge"
 
-CONF_MODE = "mode"
-MODE_FR24 = "fr24"
-MODE_ADSB = "adsb"
-MODE_BOTH = "both"
-DEFAULT_MODE = MODE_BOTH
+# Source selection (Step 1)
+CONF_SOURCE_MODE = "source_mode"
+SOURCE_FR24_ONLY = "fr24_only"
+SOURCE_ADSB_ONLY = "adsb_only"
+SOURCE_BOTH = "both"
+DEFAULT_SOURCE_MODE = SOURCE_BOTH
 
+# FR24
 CONF_FR24_ENTITY = "fr24_entity"
 
+# ADS-B source selection
 CONF_ADSB_SOURCE = "adsb_source"
-ADSB_SOURCE_URL = "url"
-ADSB_SOURCE_ENTITY = "entity"
-DEFAULT_ADSB_SOURCE = ADSB_SOURCE_URL
+DEFAULT_ADSB_SOURCE = "url"   # "url" oder "entity"
 
+# ADS-B by URL or by existing entity
 CONF_ADSB_URL = "adsb_url"
 CONF_ADSB_ENTITY = "adsb_entity"
 
+# Polling
 CONF_SCAN_INTERVAL = "scan_interval"
 DEFAULT_SCAN_INTERVAL = 10
 
+# Tracking
 CONF_ENABLE_TRACKING = "enable_tracking"
 DEFAULT_ENABLE_TRACKING = False
 
 CONF_TRACK_MODE = "track_mode"
-TRACK_MODE_CALLSIGN = "callsign"
-TRACK_MODE_REGISTRATION = "registration"
-TRACK_MODE_BOTH = "both"
-DEFAULT_TRACK_MODE = TRACK_MODE_CALLSIGN
+DEFAULT_TRACK_MODE = "callsign"
 
 CONF_TRACK_CALLSIGNS = "track_callsigns"
 CONF_TRACK_REGISTRATIONS = "track_registrations"
