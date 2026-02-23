@@ -1,21 +1,34 @@
 DOMAIN = "air_traffic_merge"
 
+CONF_MODE = "mode"
+MODE_FR24 = "fr24"
+MODE_ADSB = "adsb"
+MODE_BOTH = "both"
+DEFAULT_MODE = MODE_BOTH
+
 CONF_FR24_ENTITY = "fr24_entity"
 
-CONF_ADSB_SOURCE = "adsb_source"   # "url" | "entity"
+CONF_ADSB_SOURCE = "adsb_source"
+ADSB_SOURCE_URL = "url"
+ADSB_SOURCE_ENTITY = "entity"
+DEFAULT_ADSB_SOURCE = ADSB_SOURCE_URL
+
 CONF_ADSB_URL = "adsb_url"
 CONF_ADSB_ENTITY = "adsb_entity"
 
 CONF_SCAN_INTERVAL = "scan_interval"
+DEFAULT_SCAN_INTERVAL = 10
 
 CONF_ENABLE_TRACKING = "enable_tracking"
-CONF_TRACK_CALLSIGNS = "track_callsigns"        # comma-separated string
-CONF_TRACK_REGISTRATIONS = "track_registrations" # comma-separated string
-CONF_TRACK_MODE = "track_mode"                  # "callsign" | "registration" | "both"
+DEFAULT_ENABLE_TRACKING = False
 
-DEFAULT_SCAN_INTERVAL = 10  # seconds
-DEFAULT_ADSB_SOURCE = "url"
-DEFAULT_ENABLE_TRACKING = True
-DEFAULT_TRACK_CALLSIGNS = "CHX16"
+CONF_TRACK_MODE = "track_mode"
+TRACK_MODE_CALLSIGN = "callsign"
+TRACK_MODE_REGISTRATION = "registration"
+TRACK_MODE_BOTH = "both"
+DEFAULT_TRACK_MODE = TRACK_MODE_CALLSIGN
+
+CONF_TRACK_CALLSIGNS = "track_callsigns"
+CONF_TRACK_REGISTRATIONS = "track_registrations"
+DEFAULT_TRACK_CALLSIGNS = ""
 DEFAULT_TRACK_REGISTRATIONS = ""
-DEFAULT_TRACK_MODE = "callsign"
