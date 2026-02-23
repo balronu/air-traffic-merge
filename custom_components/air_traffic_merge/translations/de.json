@@ -3,20 +3,62 @@
     "step": {
       "user": {
         "title": "Air Traffic Merge",
-        "description": "W\u00e4hle deinen FR24 Sensor, die ADS-B Quelle (URL oder Entity) und Tracking (Callsign/Registrierung)."
+        "description": "Wähle deinen FR24 Sensor, die ADS-B Quelle (URL oder Entity) und Tracking (Callsign/Registrierung).",
+        "data": {
+          "source_mode": "Quelle",
+          "enable_tracking": "Tracking aktivieren"
+        }
+      },
+      "fr24": {
+        "title": "FR24 Sensor",
+        "description": "Wähle deinen Flightradar24 Sensor (muss das Attribut `flights` haben).",
+        "data": {
+          "fr24_entity": "FR24 Sensor"
+        }
+      },
+      "adsb_source": {
+        "title": "ADS-B Quelle",
+        "description": "Wähle, ob du ADS-B per URL (aircraft.json) oder über einen bestehenden Sensor einbinden willst.",
+        "data": {
+          "adsb_source": "ADS-B Quelle",
+          "scan_interval": "Intervall (Sek.)"
+        }
+      },
+      "adsb_url": {
+        "title": "ADS-B URL",
+        "description": "Gib die URL zur aircraft.json an. Beispiel: `http://192.168.178.186:8080/data/aircraft.json`",
+        "data": {
+          "adsb_url": "ADS-B URL"
+        }
+      },
+      "adsb_entity": {
+        "title": "ADS-B Entity",
+        "description": "Wähle einen Sensor, der das Attribut `aircraft` enthält.",
+        "data": {
+          "adsb_entity": "ADS-B Sensor"
+        }
+      },
+      "tracking_mode": {
+        "title": "Tracking Modus",
+        "description": "Wähle Callsign, Registrierung oder beides.",
+        "data": {
+          "track_mode": "Tracking Modus"
+        }
+      },
+      "tracking_values": {
+        "title": "Tracking Werte",
+        "description": "Mehrere Werte mit Komma trennen, z. B. `CHX16,CHX18` oder `D-HXYZ,D-ABCD`.",
+        "data": {
+          "track_callsigns": "Callsigns",
+          "track_registrations": "Registrierungen"
+        }
       }
     },
     "error": {
-      "invalid_url": "Bitte eine g\u00fcltige http/https URL angeben.",
-      "missing_entity": "Bitte einen ADS-B Sensor ausw\u00e4hlen."
-    }
-  },
-  "options": {
-    "step": {
-      "init": {
-        "title": "Air Traffic Merge Optionen",
-        "description": "\u00c4ndere ADS-B Quelle, Intervall und Tracking."
-      }
+      "invalid_source_mode": "Ungültige Quellen-Auswahl.",
+      "missing_entity": "Bitte eine Entity auswählen.",
+      "invalid_url": "Bitte eine gültige URL angeben.",
+      "invalid_track_mode": "Ungültiger Tracking-Modus."
     }
   }
 }
