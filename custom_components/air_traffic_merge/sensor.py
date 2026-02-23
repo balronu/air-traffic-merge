@@ -7,15 +7,11 @@ from homeassistant.core import HomeAssistant
 from .const import DOMAIN
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_entities,
-) -> None:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
     async_add_entities([AirTrafficMergedSensor()])
 
 
 class AirTrafficMergedSensor(SensorEntity):
     _attr_name = "Air Traffic Merged"
-    _attr_unique_id = "air_traffic_merged_test"
+    _attr_unique_id = "air_traffic_merged"
     _attr_native_value = 0
