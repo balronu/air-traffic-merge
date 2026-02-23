@@ -1,139 +1,151 @@
 from __future__ import annotations
 
-from typing import Any
-
 import voluptuous as vol
 
 from homeassistant import config_entries
+from homeassistant.core import callback
 from homeassistant.helpers import selector
 
 from .const import (
     DOMAIN,
-    # Mode
-    CONF_MODE,
-    MODE_FR24,
-    MODE_ADSB,
-    MODE_BOTH,
-    DEFAULT_MODE,
-    # FR24
+    CONF_SOURCE_MODE,
     CONF_FR24_ENTITY,
-    # ADSB
     CONF_ADSB_SOURCE,
-    ADSB_SOURCE_URL,
-    ADSB_SOURCE_ENTITY,
-    DEFAULT_ADSB_SOURCE,
     CONF_ADSB_URL,
     CONF_ADSB_ENTITY,
-    # Misc
     CONF_SCAN_INTERVAL,
-    DEFAULT_SCAN_INTERVAL,
-    # Tracking
     CONF_ENABLE_TRACKING,
-    DEFAULT_ENABLE_TRACKING,
     CONF_TRACK_MODE,
-    TRACK_MODE_CALLSIGN,
-    TRACK_MODE_REGISTRATION,
-    TRACK_MODE_BOTH,
-    DEFAULT_TRACK_MODE,
     CONF_TRACK_CALLSIGNS,
     CONF_TRACK_REGISTRATIONS,
+    DEFAULT_SCAN_INTERVAL,
+    DEFAULT_ADSB_SOURCE,
+    DEFAULT_ENABLE_TRACKING,
+    DEFAULT_TRACK_MODE,
     DEFAULT_TRACK_CALLSIGNS,
     DEFAULT_TRACK_REGISTRATIONS,
 )
 
-
-def _is_http_url(url: str) -> bool:
-    u = (url or "").strip().lower()
-    return u.startswith("http://") or u.startswith("https://")
-
-
-def _looks_like_aircraft_json(url: str) -> bool:
-    u = (url or "").strip().lower()
-    # Wir wollen nur einen Hinweis geben, kein Hard-Fail.
-    return u.endswith("/aircraft.json") or u.endswith("aircraft.json")
+SOURCE_FR24_ONLY = "fr24_only"
+SOURCE_ADSB_ONLY = "adsb_only"
+SOURCE_BOTH = "both"
 
 
-def _entity_selector_optional(default: str | None = None):
-    # NIE default=None an EntitySelector geben!
-    if default:
-        return vol.Optional(default=default)
-    return vol.Optional
+def _normalize_adsb_url(url: str) -> str:
+    """Accept either full aircraft.json URL or a base URL and normalize.
+
+    Examples:
+    - http://1.2.3.4:8080/data/aircraft.json  (kept)
+    - http://1.2.3.4:8080                    (-> /data/aircraft.json)
+    - http://1.2.3.4:8080/                   (-> /data/aircraft.json)
+    - http://1.2.3.4:8080/data               (-> /data/aircraft.json)
+    """
+    u = (url or "").strip()
+    if not u:
+        return u
+    if not (u.startswith("http://") or u.startswith("https://")):
+        return u
+
+    # If user already provided aircraft.json, keep as-is
+    if "aircraft.json" in u:
+        return u
+
+    # If they gave a base URL or folder URL, append standard path
+    u = u.rstrip("/")
+    return f"{u}/data/aircraft.json"
 
 
 class AirTrafficMergeFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     def __init__(self) -> None:
-        self._data: dict[str, Any] = {}
+        self._data: dict = {}
 
-    async def async_step_user(self, user_input: dict[str, Any] | None = None):
-        """Step 1: Grundmodus wählen."""
-        errors: dict[str, str] = {}
+    async def async_step_user(self, user_input=None):
+        """Step 1: Choose which sources to use."""
+        errors = {}
 
         if user_input is not None:
             self._data.update(user_input)
 
-            # Routing je nach Modus
-            mode = self._data.get(CONF_MODE, DEFAULT_MODE)
-            if mode in (MODE_FR24, MODE_BOTH):
+            source_mode = self._data.get(CONF_SOURCE_MODE, SOURCE_BOTH)
+            enable_tracking = bool(self._data.get(CONF_ENABLE_TRACKING, DEFAULT_ENABLE_TRACKING))
+            self._data[CONF_ENABLE_TRACKING] = enable_tracking
+
+            # Next step based on chosen sources
+            if source_mode in (SOURCE_FR24_ONLY, SOURCE_BOTH):
                 return await self.async_step_fr24()
-            return await self.async_step_adsb()
+
+            if source_mode in (SOURCE_ADSB_ONLY,):
+                return await self.async_step_adsb_source()
+
+            errors["base"] = "invalid_source_mode"
 
         schema = vol.Schema(
             {
-                vol.Required(CONF_MODE, default=self._data.get(CONF_MODE, DEFAULT_MODE)): selector.SelectSelector(
+                vol.Required(CONF_SOURCE_MODE, default=SOURCE_BOTH): selector.SelectSelector(
                     selector.SelectSelectorConfig(
                         options=[
-                            {"label": "Nur Flightradar24 (FR24)", "value": MODE_FR24},
-                            {"label": "Nur ADS-B (lokal)", "value": MODE_ADSB},
-                            {"label": "FR24 + ADS-B (zusammenführen)", "value": MODE_BOTH},
+                            {"label": "Beides (FR24 + ADS-B)", "value": SOURCE_BOTH},
+                            {"label": "Nur Flightradar24 (FR24)", "value": SOURCE_FR24_ONLY},
+                            {"label": "Nur ADS-B (lokal)", "value": SOURCE_ADSB_ONLY},
                         ],
                         mode="dropdown",
                     )
                 ),
+                vol.Optional(CONF_ENABLE_TRACKING, default=DEFAULT_ENABLE_TRACKING): bool,
             }
         )
-        return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
 
-    async def async_step_fr24(self, user_input: dict[str, Any] | None = None):
-        """Step 2 (optional): FR24 Sensor auswählen."""
-        errors: dict[str, str] = {}
+        return self.async_show_form(
+            step_id="user",
+            data_schema=schema,
+            errors=errors,
+        )
+
+    async def async_step_fr24(self, user_input=None):
+        """Step 2 (optional): FR24 entity selection."""
+        errors = {}
 
         if user_input is not None:
-            # FR24 Entity optional, aber wenn Mode FR24/BOTH dann sinnvollerweise required
-            fr24 = user_input.get(CONF_FR24_ENTITY)
-            mode = self._data.get(CONF_MODE, DEFAULT_MODE)
-
-            if mode in (MODE_FR24, MODE_BOTH) and not fr24:
+            fr24_entity = user_input.get(CONF_FR24_ENTITY)
+            if not fr24_entity:
                 errors[CONF_FR24_ENTITY] = "missing_entity"
             else:
                 self._data.update(user_input)
-                return await self.async_step_adsb() if mode in (MODE_ADSB, MODE_BOTH) else await self.async_step_tracking_gate()
 
-        fr24_default = self._data.get(CONF_FR24_ENTITY)
+                source_mode = self._data.get(CONF_SOURCE_MODE, SOURCE_BOTH)
+                if source_mode == SOURCE_FR24_ONLY:
+                    # If tracking enabled -> go to tracking, else finish
+                    if self._data.get(CONF_ENABLE_TRACKING):
+                        return await self.async_step_tracking_mode()
+                    return self._create_entry()
+
+                return await self.async_step_adsb_source()
+
         schema = vol.Schema(
             {
-                vol.Required(CONF_FR24_ENTITY, default=fr24_default) if fr24_default else vol.Required(CONF_FR24_ENTITY): selector.EntitySelector(
+                vol.Required(CONF_FR24_ENTITY): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain="sensor")
                 )
             }
         )
 
-        return self.async_show_form(step_id="fr24", data_schema=schema, errors=errors)
+        return self.async_show_form(
+            step_id="fr24",
+            data_schema=schema,
+            errors=errors,
+        )
 
-    async def async_step_adsb(self, user_input: dict[str, Any] | None = None):
-        """Step 3 (optional): ADS-B Quelle wählen."""
-        errors: dict[str, str] = {}
-
-        mode = self._data.get(CONF_MODE, DEFAULT_MODE)
-        if mode == MODE_FR24:
-            return await self.async_step_tracking_gate()
+    async def async_step_adsb_source(self, user_input=None):
+        """Step 3: Choose ADS-B input method."""
+        errors = {}
 
         if user_input is not None:
-            adsb_source = user_input.get(CONF_ADSB_SOURCE, DEFAULT_ADSB_SOURCE)
             self._data.update(user_input)
 
-            if adsb_source == ADSB_SOURCE_URL:
+            adsb_source = self._data.get(CONF_ADSB_SOURCE, DEFAULT_ADSB_SOURCE)
+            if adsb_source == "url":
                 return await self.async_step_adsb_url()
             return await self.async_step_adsb_entity()
 
@@ -142,8 +154,8 @@ class AirTrafficMergeFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(CONF_ADSB_SOURCE, default=self._data.get(CONF_ADSB_SOURCE, DEFAULT_ADSB_SOURCE)): selector.SelectSelector(
                     selector.SelectSelectorConfig(
                         options=[
-                            {"label": "ADS-B per URL (aircraft.json)", "value": ADSB_SOURCE_URL},
-                            {"label": "ADS-B über bestehenden Sensor (attributes.aircraft)", "value": ADSB_SOURCE_ENTITY},
+                            {"label": "ADS-B per URL (aircraft.json)", "value": "url"},
+                            {"label": "ADS-B bestehender Sensor (attributes.aircraft)", "value": "entity"},
                         ],
                         mode="dropdown",
                     )
@@ -151,32 +163,39 @@ class AirTrafficMergeFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional(CONF_SCAN_INTERVAL, default=int(self._data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL))): vol.Coerce(int),
             }
         )
-        return self.async_show_form(step_id="adsb", data_schema=schema, errors=errors)
 
-    async def async_step_adsb_url(self, user_input: dict[str, Any] | None = None):
-        """Step 4a: ADS-B URL eingeben."""
-        errors: dict[str, str] = {}
-        placeholders = {
-            # Hinweistext wird in translations unter description_placeholders genutzt
-            "example_url": "http://<ip>:8080/data/aircraft.json"
-        }
+        return self.async_show_form(
+            step_id="adsb_source",
+            data_schema=schema,
+            errors=errors,
+            description_placeholders={
+                "url_hint": "Hinweis: Du kannst entweder die komplette URL inkl. /data/aircraft.json angeben – oder nur die Basis-URL (z.B. http://192.168.178.186:8080). Die Integration ergänzt /data/aircraft.json automatisch."
+            },
+        )
+
+    async def async_step_adsb_url(self, user_input=None):
+        """Step 4a: ADS-B URL."""
+        errors = {}
 
         if user_input is not None:
-            url = str(user_input.get(CONF_ADSB_URL, "") or "").strip()
-            if not _is_http_url(url):
+            url_raw = str(user_input.get(CONF_ADSB_URL, "") or "").strip()
+            url = _normalize_adsb_url(url_raw)
+
+            if not (url.startswith("http://") or url.startswith("https://")):
                 errors[CONF_ADSB_URL] = "invalid_url"
             else:
-                # Optional: Warnung wenn nicht nach aircraft.json aussieht
-                # (kein Fehler — nur Hinweis, siehe strings/translation)
-                self._data.update({CONF_ADSB_URL: url})
-                # sicherstellen: entity nicht speichern
+                # Save normalized URL and ensure we do NOT keep entity fields
+                self._data[CONF_ADSB_URL] = url
                 self._data.pop(CONF_ADSB_ENTITY, None)
-                return await self.async_step_tracking_gate()
 
-        url_default = self._data.get(CONF_ADSB_URL, "")
+                # Tracking?
+                if self._data.get(CONF_ENABLE_TRACKING):
+                    return await self.async_step_tracking_mode()
+                return self._create_entry()
+
         schema = vol.Schema(
             {
-                vol.Required(CONF_ADSB_URL, default=url_default): str,
+                vol.Required(CONF_ADSB_URL, default=self._data.get(CONF_ADSB_URL, "")): str,
             }
         )
 
@@ -184,115 +203,142 @@ class AirTrafficMergeFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="adsb_url",
             data_schema=schema,
             errors=errors,
-            description_placeholders=placeholders,
+            description_placeholders={
+                "url_hint": "Beispiel: http://192.168.178.186:8080/data/aircraft.json  (oder nur http://192.168.178.186:8080)"
+            },
         )
 
-    async def async_step_adsb_entity(self, user_input: dict[str, Any] | None = None):
-        """Step 4b: ADS-B Entity auswählen."""
-        errors: dict[str, str] = {}
+    async def async_step_adsb_entity(self, user_input=None):
+        """Step 4b: Existing ADS-B sensor entity."""
+        errors = {}
 
         if user_input is not None:
             ent = user_input.get(CONF_ADSB_ENTITY)
             if not ent:
                 errors[CONF_ADSB_ENTITY] = "missing_entity"
             else:
-                self._data.update({CONF_ADSB_ENTITY: ent})
-                # sicherstellen: url nicht speichern
+                self._data[CONF_ADSB_ENTITY] = ent
                 self._data.pop(CONF_ADSB_URL, None)
-                return await self.async_step_tracking_gate()
 
-        ent_default = self._data.get(CONF_ADSB_ENTITY)
+                if self._data.get(CONF_ENABLE_TRACKING):
+                    return await self.async_step_tracking_mode()
+                return self._create_entry()
 
         schema = vol.Schema(
             {
-                (vol.Required(CONF_ADSB_ENTITY, default=ent_default) if ent_default else vol.Required(CONF_ADSB_ENTITY)): selector.EntitySelector(
+                vol.Required(CONF_ADSB_ENTITY): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain="sensor")
                 )
             }
         )
 
-        return self.async_show_form(step_id="adsb_entity", data_schema=schema, errors=errors)
-
-    async def async_step_tracking_gate(self, user_input: dict[str, Any] | None = None):
-        """Step 5: Tracking aktivieren? (default: aus)"""
-        errors: dict[str, str] = {}
-
-        if user_input is not None:
-            enable = bool(user_input.get(CONF_ENABLE_TRACKING, False))
-            self._data[CONF_ENABLE_TRACKING] = enable
-            if enable:
-                return await self.async_step_tracking()
-            return await self._finish()
-
-        schema = vol.Schema(
-            {
-                vol.Required(CONF_ENABLE_TRACKING, default=bool(self._data.get(CONF_ENABLE_TRACKING, DEFAULT_ENABLE_TRACKING))): bool
-            }
+        return self.async_show_form(
+            step_id="adsb_entity",
+            data_schema=schema,
+            errors=errors,
         )
-        return self.async_show_form(step_id="tracking_gate", data_schema=schema, errors=errors)
 
-    async def async_step_tracking(self, user_input: dict[str, Any] | None = None):
-        """Step 6: Tracking Details (nur wenn aktiviert)."""
-        errors: dict[str, str] = {}
+    async def async_step_tracking_mode(self, user_input=None):
+        """Step 5: Tracking mode (only if enabled)."""
+        errors = {}
 
         if user_input is not None:
-            # (Optional) leichte Normalisierung: Strings trimmen
-            user_input[CONF_TRACK_CALLSIGNS] = str(user_input.get(CONF_TRACK_CALLSIGNS, "") or "").strip()
-            user_input[CONF_TRACK_REGISTRATIONS] = str(user_input.get(CONF_TRACK_REGISTRATIONS, "") or "").strip()
-
             self._data.update(user_input)
-            return await self._finish()
+            mode = self._data.get(CONF_TRACK_MODE, DEFAULT_TRACK_MODE)
+
+            if mode not in ("callsign", "registration", "both"):
+                errors["base"] = "invalid_track_mode"
+            else:
+                return await self.async_step_tracking_values()
 
         schema = vol.Schema(
             {
-                vol.Required(CONF_TRACK_MODE, default=str(self._data.get(CONF_TRACK_MODE, DEFAULT_TRACK_MODE))): selector.SelectSelector(
+                vol.Required(CONF_TRACK_MODE, default=self._data.get(CONF_TRACK_MODE, DEFAULT_TRACK_MODE)): selector.SelectSelector(
                     selector.SelectSelectorConfig(
                         options=[
-                            {"label": "Callsign (z. B. CHX16)", "value": TRACK_MODE_CALLSIGN},
-                            {"label": "Registrierung (z. B. D-HXYZ)", "value": TRACK_MODE_REGISTRATION},
-                            {"label": "Beides", "value": TRACK_MODE_BOTH},
+                            {"label": "Callsign (z. B. CHX16)", "value": "callsign"},
+                            {"label": "Registrierung (z. B. D-HXYZ)", "value": "registration"},
+                            {"label": "Beides", "value": "both"},
                         ],
                         mode="dropdown",
                     )
-                ),
-                vol.Optional(CONF_TRACK_CALLSIGNS, default=str(self._data.get(CONF_TRACK_CALLSIGNS, DEFAULT_TRACK_CALLSIGNS))): str,
-                vol.Optional(CONF_TRACK_REGISTRATIONS, default=str(self._data.get(CONF_TRACK_REGISTRATIONS, DEFAULT_TRACK_REGISTRATIONS))): str,
+                )
             }
         )
 
-        return self.async_show_form(step_id="tracking", data_schema=schema, errors=errors)
+        return self.async_show_form(
+            step_id="tracking_mode",
+            data_schema=schema,
+            errors=errors,
+        )
 
-    async def _finish(self):
-        """Create final entry (nur die relevanten Keys speichern)."""
-        mode = self._data.get(CONF_MODE, DEFAULT_MODE)
+    async def async_step_tracking_values(self, user_input=None):
+        """Step 6: Tracking values depending on mode."""
+        errors = {}
+        mode = self._data.get(CONF_TRACK_MODE, DEFAULT_TRACK_MODE)
 
-        data: dict[str, Any] = {
-            CONF_MODE: mode,
-            CONF_SCAN_INTERVAL: int(self._data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)),
-            CONF_ENABLE_TRACKING: bool(self._data.get(CONF_ENABLE_TRACKING, DEFAULT_ENABLE_TRACKING)),
-        }
-
-        # FR24
-        if mode in (MODE_FR24, MODE_BOTH):
-            data[CONF_FR24_ENTITY] = self._data.get(CONF_FR24_ENTITY)
-
-        # ADSB
-        if mode in (MODE_ADSB, MODE_BOTH):
-            data[CONF_ADSB_SOURCE] = self._data.get(CONF_ADSB_SOURCE, DEFAULT_ADSB_SOURCE)
-            if data[CONF_ADSB_SOURCE] == ADSB_SOURCE_URL:
-                data[CONF_ADSB_URL] = self._data.get(CONF_ADSB_URL, "")
+        if user_input is not None:
+            # Store values depending on mode
+            if mode in ("callsign", "both"):
+                self._data[CONF_TRACK_CALLSIGNS] = str(user_input.get(CONF_TRACK_CALLSIGNS, "") or "")
             else:
-                data[CONF_ADSB_ENTITY] = self._data.get(CONF_ADSB_ENTITY)
+                self._data.pop(CONF_TRACK_CALLSIGNS, None)
 
-        # Tracking
-        if data[CONF_ENABLE_TRACKING]:
-            data[CONF_TRACK_MODE] = self._data.get(CONF_TRACK_MODE, DEFAULT_TRACK_MODE)
-            data[CONF_TRACK_CALLSIGNS] = self._data.get(CONF_TRACK_CALLSIGNS, "")
-            data[CONF_TRACK_REGISTRATIONS] = self._data.get(CONF_TRACK_REGISTRATIONS, "")
+            if mode in ("registration", "both"):
+                self._data[CONF_TRACK_REGISTRATIONS] = str(user_input.get(CONF_TRACK_REGISTRATIONS, "") or "")
+            else:
+                self._data.pop(CONF_TRACK_REGISTRATIONS, None)
+
+            return self._create_entry()
+
+        fields = {}
+
+        if mode in ("callsign", "both"):
+            fields[vol.Optional(CONF_TRACK_CALLSIGNS, default=self._data.get(CONF_TRACK_CALLSIGNS, DEFAULT_TRACK_CALLSIGNS))] = str
+        if mode in ("registration", "both"):
+            fields[vol.Optional(CONF_TRACK_REGISTRATIONS, default=self._data.get(CONF_TRACK_REGISTRATIONS, DEFAULT_TRACK_REGISTRATIONS))] = str
+
+        schema = vol.Schema(fields)
+
+        return self.async_show_form(
+            step_id="tracking_values",
+            data_schema=schema,
+            errors=errors,
+            description_placeholders={
+                "hint": "Mehrere Werte mit Komma trennen, z. B. CHX16,CHX18 oder D-HXYZ,D-ABCD."
+            },
+        )
+
+    @callback
+    def _create_entry(self):
+        """Create entry with clean data according to selected mode."""
+        data = dict(self._data)
+
+        # Clean data depending on source mode
+        source_mode = data.get(CONF_SOURCE_MODE, SOURCE_BOTH)
+
+        if source_mode == SOURCE_ADSB_ONLY:
+            data.pop(CONF_FR24_ENTITY, None)
+        elif source_mode == SOURCE_FR24_ONLY:
+            data.pop(CONF_ADSB_SOURCE, None)
+            data.pop(CONF_ADSB_URL, None)
+            data.pop(CONF_ADSB_ENTITY, None)
+            data.pop(CONF_SCAN_INTERVAL, None)
+
+        # Clean tracking if disabled
+        if not data.get(CONF_ENABLE_TRACKING, False):
+            data.pop(CONF_TRACK_MODE, None)
+            data.pop(CONF_TRACK_CALLSIGNS, None)
+            data.pop(CONF_TRACK_REGISTRATIONS, None)
+
+        # Ensure scan_interval exists if ADS-B is used
+        if source_mode in (SOURCE_ADSB_ONLY, SOURCE_BOTH):
+            data[CONF_SCAN_INTERVAL] = int(data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL))
 
         return self.async_create_entry(title="Air Traffic Merge", data=data)
 
     @staticmethod
+    @callback
     def async_get_options_flow(config_entry: config_entries.ConfigEntry):
         return AirTrafficMergeOptionsFlow(config_entry)
 
@@ -300,26 +346,69 @@ class AirTrafficMergeFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class AirTrafficMergeOptionsFlow(config_entries.OptionsFlow):
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         self.config_entry = config_entry
-        self._data: dict[str, Any] = {}
+        self._data: dict = dict(config_entry.data)
+        self._data.update(dict(config_entry.options or {}))
 
-    async def async_step_init(self, user_input: dict[str, Any] | None = None):
-        # Options nutzt denselben Wizard — wir starten mit User-Step,
-        # aber mit Defaults aus entry.data + entry.options
-        if not self._data:
-            defaults = dict(self.config_entry.data)
-            defaults.update(dict(self.config_entry.options or {}))
-            self._data.update(defaults)
+    async def async_step_init(self, user_input=None):
+        # Start in the same step as user step
+        return await self.async_step_user(user_input)
+
+    async def async_step_user(self, user_input=None):
         flow = AirTrafficMergeFlow()
-        flow._data = dict(self._data)  # seed
-
-        # OptionsFlow muss eigenständig laufen -> wir spiegeln die Steps minimal:
-        # Wir springen direkt zum "user"-Step, aber mit defaults.
-        # (HA ruft nur async_step_init auf)
-        return await self._step_user(flow, user_input=None)
-
-    async def _step_user(self, flow: AirTrafficMergeFlow, user_input: dict[str, Any] | None):
-        # Im Options-Flow lassen wir dich erneut konfigurieren.
+        flow.hass = self.hass  # type: ignore
+        flow._data = dict(self._data)  # reuse saved values
         return await flow.async_step_user(user_input)
 
-    # Home Assistant erwartet OptionsFlow mit async_step_init -> done
-    # Das Speichern erfolgt automatisch, weil ConfigFlow create_entry macht.
+    async def async_step_fr24(self, user_input=None):
+        flow = AirTrafficMergeFlow()
+        flow.hass = self.hass  # type: ignore
+        flow._data = dict(self._data)
+        result = await flow.async_step_fr24(user_input)
+        if result.get("type") == "create_entry":
+            return self.async_create_entry(title="", data=result["data"])
+        return result
+
+    async def async_step_adsb_source(self, user_input=None):
+        flow = AirTrafficMergeFlow()
+        flow.hass = self.hass  # type: ignore
+        flow._data = dict(self._data)
+        result = await flow.async_step_adsb_source(user_input)
+        if result.get("type") == "create_entry":
+            return self.async_create_entry(title="", data=result["data"])
+        return result
+
+    async def async_step_adsb_url(self, user_input=None):
+        flow = AirTrafficMergeFlow()
+        flow.hass = self.hass  # type: ignore
+        flow._data = dict(self._data)
+        result = await flow.async_step_adsb_url(user_input)
+        if result.get("type") == "create_entry":
+            return self.async_create_entry(title="", data=result["data"])
+        return result
+
+    async def async_step_adsb_entity(self, user_input=None):
+        flow = AirTrafficMergeFlow()
+        flow.hass = self.hass  # type: ignore
+        flow._data = dict(self._data)
+        result = await flow.async_step_adsb_entity(user_input)
+        if result.get("type") == "create_entry":
+            return self.async_create_entry(title="", data=result["data"])
+        return result
+
+    async def async_step_tracking_mode(self, user_input=None):
+        flow = AirTrafficMergeFlow()
+        flow.hass = self.hass  # type: ignore
+        flow._data = dict(self._data)
+        result = await flow.async_step_tracking_mode(user_input)
+        if result.get("type") == "create_entry":
+            return self.async_create_entry(title="", data=result["data"])
+        return result
+
+    async def async_step_tracking_values(self, user_input=None):
+        flow = AirTrafficMergeFlow()
+        flow.hass = self.hass  # type: ignore
+        flow._data = dict(self._data)
+        result = await flow.async_step_tracking_values(user_input)
+        if result.get("type") == "create_entry":
+            return self.async_create_entry(title="", data=result["data"])
+        return result
