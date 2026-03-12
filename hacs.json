@@ -1,5 +1,5 @@
 {
-  "name": "Air Traffic Merge (FR24 + ADS-B)",
-  "content_in_root": false,
+  "name": "Air Traffic Merge",
+  "content_in_root": true,
   "render_readme": true
 }
