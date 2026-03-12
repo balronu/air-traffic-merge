@@ -1,4 +1,3 @@
-"""Constants for Air Traffic Merge."""
 from __future__ import annotations
 
 DOMAIN = "air_traffic_merge"

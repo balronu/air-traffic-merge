@@ -1,11 +1,9 @@
-"""Sensor platform for Air Traffic Merge."""
 from __future__ import annotations
 
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -33,27 +31,17 @@ COUNT_KEYS = {
     "civil": "civil",
 }
 
-
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
+async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator: AirTrafficMergeCoordinator = entry.runtime_data
-
     entities: list[SensorEntity] = [AirTrafficMergeMainSensor(coordinator, entry)]
     entities.extend(AirTrafficMergeCountSensor(coordinator, entry, key) for key in COUNT_KEYS)
     async_add_entities(entities)
 
-
 class AirTrafficMergeBase(CoordinatorEntity[AirTrafficMergeCoordinator], SensorEntity):
-    """Base sensor."""
-
     _attr_has_entity_name = True
 
     def __init__(self, coordinator: AirTrafficMergeCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator)
-        self._entry = entry
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name="Air Traffic Merge",
@@ -61,10 +49,7 @@ class AirTrafficMergeBase(CoordinatorEntity[AirTrafficMergeCoordinator], SensorE
             model="FR24 + ADS-B Merge",
         )
 
-
 class AirTrafficMergeMainSensor(AirTrafficMergeBase):
-    """Main merged flights sensor."""
-
     _attr_name = None
     _attr_translation_key = "main"
     _attr_icon = "mdi:airplane"
@@ -91,16 +76,14 @@ class AirTrafficMergeMainSensor(AirTrafficMergeBase):
             ATTR_DEBUG: self.coordinator.data.get(ATTR_DEBUG, {}),
         }
 
-
 class AirTrafficMergeCountSensor(AirTrafficMergeBase):
-    """Count sensor for specific category."""
+    _attr_icon = "mdi:counter"
 
     def __init__(self, coordinator: AirTrafficMergeCoordinator, entry: ConfigEntry, count_key: str) -> None:
         super().__init__(coordinator, entry)
         self._count_key = count_key
         self._attr_translation_key = f"count_{count_key}"
         self._attr_unique_id = f"{entry.entry_id}_{count_key}"
-        self._attr_icon = "mdi:counter"
 
     @property
     def native_value(self) -> int:

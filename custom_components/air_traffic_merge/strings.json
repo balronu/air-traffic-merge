@@ -1,16 +1,17 @@
 {
+  "title": "Air Traffic Merge",
   "config": {
     "step": {
       "user": {
-        "title": "Air Traffic Merge",
-        "description": "Merge FR24 and ADS-B aircraft into one Home Assistant integration.",
+        "title": "Air Traffic Merge einrichten",
+        "description": "FR24 Entity und ADS-B URL auswählen",
         "data": {
-          "fr24_entity": "FR24 sensor entity",
-          "adsb_url": "ADS-B JSON URL",
-          "scan_interval": "Scan interval (seconds)",
-          "max_items": "Maximum flights in list",
-          "tracked_callsigns": "Tracked callsigns (comma-separated)",
-          "tracked_registrations": "Tracked registrations (comma-separated)"
+          "fr24_entity": "FR24 Entity",
+          "adsb_url": "ADS-B URL",
+          "scan_interval": "Scan-Intervall (Sekunden)",
+          "max_items": "Maximale Anzahl Flüge",
+          "tracked_callsigns": "Überwachte Callsigns (kommagetrennt)",
+          "tracked_registrations": "Überwachte Kennungen (kommagetrennt)"
         }
       }
     }
@@ -18,25 +19,25 @@
   "options": {
     "step": {
       "init": {
-        "title": "Air Traffic Merge options",
+        "title": "Air Traffic Merge Optionen",
         "data": {
-          "scan_interval": "Scan interval (seconds)",
-          "max_items": "Maximum flights in list",
-          "tracked_callsigns": "Tracked callsigns (comma-separated)",
-          "tracked_registrations": "Tracked registrations (comma-separated)"
+          "scan_interval": "Scan-Intervall (Sekunden)",
+          "max_items": "Maximale Anzahl Flüge",
+          "tracked_callsigns": "Überwachte Callsigns (kommagetrennt)",
+          "tracked_registrations": "Überwachte Kennungen (kommagetrennt)"
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "main": {"name": "Flights"},
-      "count_medical": {"name": "Medical count"},
-      "count_military": {"name": "Military count"},
-      "count_helicopter": {"name": "Helicopter count"},
-      "count_business": {"name": "Business count"},
-      "count_general_aviation": {"name": "General aviation count"},
-      "count_civil": {"name": "Civil count"}
+      "main": { "name": "Air Traffic Merged" },
+      "count_medical": { "name": "Medical" },
+      "count_military": { "name": "Militär" },
+      "count_helicopter": { "name": "Helikopter" },
+      "count_business": { "name": "Business" },
+      "count_general_aviation": { "name": "General Aviation" },
+      "count_civil": { "name": "Zivil" }
     }
   }
 }

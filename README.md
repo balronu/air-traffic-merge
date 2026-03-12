@@ -1,79 +1,58 @@
 # Air Traffic Merge
 
-Custom Home Assistant integration that merges Flightradar24 and ADS-B (`aircraft.json`) into one sensor and classifies aircraft as medical, military, helicopter, business, GA, or civil.
+Home Assistant Custom Integration zum Zusammenführen von:
 
-## Features
+- Flightradar24 Entity
+- ADS-B JSON Quelle (z. B. readsb `aircraft.json`)
 
-- Config flow in the UI
-- Reads a FR24 sensor entity and an ADS-B JSON URL
-- Merges aircraft by registration first and ADS-B hex as fallback
-- Robust classification for:
-  - Medical: `CHX`, `ADAC`, `DRF`, `REGA`, `LIFE`, `ITH`, `RTH`
-  - Military: `HERKY`, `RCH`, `REACH`, `NATO`, `GAF`, `MMF`, `DUKE`, etc.
-  - Helicopters, business jets, GA, civil traffic
-- Extra count sensors
-- Optional tracked callsigns / registrations
+## Funktionen
 
-## Installation via HACS
+- Merge von FR24 + ADS-B
+- Kategorien:
+  - Medical
+  - Militär
+  - Militär – Fighter / Tanker / Transport / Aufklärung / Helikopter
+  - Helikopter
+  - Business Jet
+  - General Aviation
+  - Zivil
+- Tracking über Callsigns und Registrierungen
+- zusätzliche Count-Sensoren
 
-1. Add this repository as a custom repository in HACS.
-2. Type: **Integration**
-3. Install **Air Traffic Merge**.
-4. Restart Home Assistant.
-5. Add the integration in **Settings → Devices & services**.
+## Installation
 
-## Setup
+### HACS
+1. Dieses Repository als **Custom Repository** in HACS hinzufügen
+2. Typ: **Integration**
+3. Installation starten
+4. Home Assistant neu starten
 
-You need:
+### Manuell
+Den Ordner `custom_components/air_traffic_merge` nach `/config/custom_components/` kopieren.
 
-- A FR24 entity, for example:
-  - `sensor.flightradar24_current_in_area`
-- An ADS-B JSON URL, for example:
-  - `http://192.168.178.186:8080/data/aircraft.json`
+## Einrichtung
 
-## Created entities
+Nach dem Neustart:
 
-Main sensor:
+- **Einstellungen**
+- **Geräte & Dienste**
+- **Integration hinzufügen**
+- **Air Traffic Merge**
 
-- `sensor.air_traffic_merge_flights`
+Einzugeben sind:
 
-Count sensors:
+- FR24 Entity, z. B. `sensor.flightradar24_current_in_area`
+- ADS-B URL, z. B. `http://192.168.178.186:8080/data/aircraft.json`
 
-- medical
-- military
-- helicopter
-- business
-- general aviation
-- civil
+## Sensoren
 
-The main sensor exposes these attributes:
+Hauptsensor:
+- `sensor.air_traffic_merge`
 
-- `flights`
-- `last_update`
-- `status`
-- `fr24_count`
-- `adsb_count`
-- `merged_count`
-- `counts`
-- `tracked_present`
-- `debug`
-
-## Dashboard card
-
-Use the separate card repository:
-
-- `balronu/air-traffic-merge-card`
-
-Example:
-
-```yaml
-type: custom:air-traffic-merge-card
-entity: sensor.air_traffic_merge_flights
-title: Flugzeuge
-show_status: true
-show_debug: false
-```
-
-## Notes
-
-This is a custom integration intended for Home Assistant. It does not require YAML sensors.
+Zusätzliche Count-Sensoren:
+- `sensor.air_traffic_merge_medical`
+- `sensor.air_traffic_merge_military`
+- `sensor.air_traffic_merge_helicopter`
+- `sensor.air_traffic_merge_business`
+- `sensor.air_traffic_merge_general_aviation`
+- `sensor.air_traffic_merge_civil`
