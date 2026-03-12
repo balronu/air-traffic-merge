@@ -3,62 +3,40 @@
     "step": {
       "user": {
         "title": "Air Traffic Merge",
-        "description": "Wähle deinen FR24 Sensor, die ADS-B Quelle (URL oder Entity) und Tracking (Callsign/Registrierung).",
+        "description": "Führt FR24 und ADS-B Flüge in einer Home-Assistant-Integration zusammen.",
         "data": {
-          "source_mode": "Quelle",
-          "enable_tracking": "Tracking aktivieren"
-        }
-      },
-      "fr24": {
-        "title": "FR24 Sensor",
-        "description": "Wähle deinen Flightradar24 Sensor (muss das Attribut `flights` haben).",
-        "data": {
-          "fr24_entity": "FR24 Sensor"
-        }
-      },
-      "adsb_source": {
-        "title": "ADS-B Quelle",
-        "description": "Wähle, ob du ADS-B per URL (aircraft.json) oder über einen bestehenden Sensor einbinden willst.",
-        "data": {
-          "adsb_source": "ADS-B Quelle",
-          "scan_interval": "Intervall (Sek.)"
-        }
-      },
-      "adsb_url": {
-        "title": "ADS-B URL",
-        "description": "Gib die URL zur aircraft.json an. Beispiel: `http://192.168.178.186:8080/data/aircraft.json`",
-        "data": {
-          "adsb_url": "ADS-B URL"
-        }
-      },
-      "adsb_entity": {
-        "title": "ADS-B Entity",
-        "description": "Wähle einen Sensor, der das Attribut `aircraft` enthält.",
-        "data": {
-          "adsb_entity": "ADS-B Sensor"
-        }
-      },
-      "tracking_mode": {
-        "title": "Tracking Modus",
-        "description": "Wähle Callsign, Registrierung oder beides.",
-        "data": {
-          "track_mode": "Tracking Modus"
-        }
-      },
-      "tracking_values": {
-        "title": "Tracking Werte",
-        "description": "Mehrere Werte mit Komma trennen, z. B. `CHX16,CHX18` oder `D-HXYZ,D-ABCD`.",
-        "data": {
-          "track_callsigns": "Callsigns",
-          "track_registrations": "Registrierungen"
+          "fr24_entity": "FR24-Sensor-Entität",
+          "adsb_url": "ADS-B JSON-URL",
+          "scan_interval": "Aktualisierungsintervall (Sekunden)",
+          "max_items": "Maximale Anzahl Flüge",
+          "tracked_callsigns": "Überwachte Callsigns (kommagetrennt)",
+          "tracked_registrations": "Überwachte Registrierungen (kommagetrennt)"
         }
       }
-    },
-    "error": {
-      "invalid_source_mode": "Ungültige Quellen-Auswahl.",
-      "missing_entity": "Bitte eine Entity auswählen.",
-      "invalid_url": "Bitte eine gültige URL angeben.",
-      "invalid_track_mode": "Ungültiger Tracking-Modus."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Air Traffic Merge Optionen",
+        "data": {
+          "scan_interval": "Aktualisierungsintervall (Sekunden)",
+          "max_items": "Maximale Anzahl Flüge",
+          "tracked_callsigns": "Überwachte Callsigns (kommagetrennt)",
+          "tracked_registrations": "Überwachte Registrierungen (kommagetrennt)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "main": {"name": "Flüge"},
+      "count_medical": {"name": "Medical-Anzahl"},
+      "count_military": {"name": "Militär-Anzahl"},
+      "count_helicopter": {"name": "Helikopter-Anzahl"},
+      "count_business": {"name": "Business-Anzahl"},
+      "count_general_aviation": {"name": "General-Aviation-Anzahl"},
+      "count_civil": {"name": "Zivil-Anzahl"}
     }
   }
 }
