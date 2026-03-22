@@ -51,6 +51,9 @@ class AirTrafficMergeCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.tracked_registrations = str(options.get(CONF_TRACKED_REGISTRATIONS, ""))
         scan_interval = int(options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL))
         self._unsub_state = None
+        self._last_adsb_aircraft: list[dict[str, Any]] = []
+        self._last_adsb_now: Any = None
+        self._last_adsb_error: str | None = None
 
         super().__init__(
             hass,
@@ -86,30 +89,26 @@ class AirTrafficMergeCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             else:
                 fr24_flights = list(fr24_state.attributes.get("flights", []))
 
-        adsb_aircraft = getattr(self, "_last_adsb_aircraft", [])
-        adsb_now = getattr(self, "_last_adsb_now", None)
-        adsb_error = getattr(self, "_last_adsb_error", None)
-
         merged = merge_flights(
             fr24_flights,
-            adsb_aircraft,
+            self._last_adsb_aircraft,
             max_items=self.max_items,
             tracked_callsigns=self.tracked_callsigns,
             tracked_registrations=self.tracked_registrations,
         )
 
-        if not fr24_flights and not adsb_aircraft:
+        if not fr24_flights and not self._last_adsb_aircraft:
             status = "empty"
-        elif fr24_flights and not adsb_aircraft:
+        elif fr24_flights and not self._last_adsb_aircraft:
             status = "fr24_only"
-        elif adsb_aircraft and not fr24_flights:
+        elif self._last_adsb_aircraft and not fr24_flights:
             status = "adsb_only"
         else:
             status = "both"
 
         return {
             ATTR_FLIGHTS: merged["flights"],
-            ATTR_LAST_UPDATE: merged["last_update"],
+            ATTR_LAST_UPDATE: self._last_adsb_now,
             ATTR_STATUS: status,
             ATTR_FR24_COUNT: merged["fr24_count"],
             ATTR_ADSB_COUNT: merged["adsb_count"],
@@ -120,8 +119,8 @@ class AirTrafficMergeCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "fr24_entity": self.fr24_entity,
                 "fr24_error": fr24_error,
                 "adsb_url": self.adsb_url,
-                "adsb_now": adsb_now,
-                "adsb_error": adsb_error,
+                "adsb_now": self._last_adsb_now,
+                "adsb_error": self._last_adsb_error,
                 "scan_interval": int(self.update_interval.total_seconds()),
                 "max_items": self.max_items,
             },
@@ -136,7 +135,7 @@ class AirTrafficMergeCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             async with session.get(self.adsb_url, timeout=ClientTimeout(total=8)) as response:
                 response.raise_for_status()
-                payload = await response.json()
+                payload = await response.json(content_type=None)
                 self._last_adsb_aircraft = list(payload.get("aircraft", []))
                 self._last_adsb_now = payload.get("now")
         except (ClientError, TimeoutError, ValueError) as err:

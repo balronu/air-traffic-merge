@@ -33,10 +33,7 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    coordinator = AirTrafficMergeCoordinator(hass, entry)
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
-    await coordinator.async_config_entry_first_refresh()
-
+    coordinator: AirTrafficMergeCoordinator = hass.data[DOMAIN][entry.entry_id]
     entities: list[SensorEntity] = [AirTrafficMergedSensor(coordinator, entry)]
     entities.extend(AirTrafficCountSensor(coordinator, entry, desc) for desc in COUNT_SENSORS)
     async_add_entities(entities)
@@ -44,11 +41,11 @@ async def async_setup_entry(
 
 class AirTrafficMergedSensor(CoordinatorEntity[AirTrafficMergeCoordinator], SensorEntity):
     _attr_icon = "mdi:airplane-search"
+    _attr_has_entity_name = True
 
     def __init__(self, coordinator: AirTrafficMergeCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator)
-        self._entry = entry
-        self._attr_name = "Air Traffic Merge"
+        self._attr_name = "Merged"
         self._attr_unique_id = f"{entry.entry_id}_overview"
 
     @property
@@ -62,11 +59,12 @@ class AirTrafficMergedSensor(CoordinatorEntity[AirTrafficMergeCoordinator], Sens
 
 class AirTrafficCountSensor(CoordinatorEntity[AirTrafficMergeCoordinator], SensorEntity):
     entity_description: CountSensorDescription
+    _attr_has_entity_name = True
 
     def __init__(self, coordinator: AirTrafficMergeCoordinator, entry: ConfigEntry, description: CountSensorDescription) -> None:
         super().__init__(coordinator)
         self.entity_description = description
-        self._attr_name = description.name
+        self._attr_name = description.name.replace("Air Traffic ", "")
         self._attr_icon = description.icon
         self._attr_unique_id = f"{entry.entry_id}_{description.key}"
 

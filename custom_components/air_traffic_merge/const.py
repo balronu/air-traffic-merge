@@ -1,8 +1,7 @@
-"""Constants for Air Traffic Merge."""
-
 from __future__ import annotations
 
 DOMAIN = "air_traffic_merge"
+PLATFORMS: list[str] = ["sensor", "binary_sensor"]
 
 CONF_ADSB_URL = "adsb_url"
 CONF_FR24_ENTITY = "fr24_entity"
@@ -23,9 +22,6 @@ ATTR_ADSB_COUNT = "adsb_count"
 ATTR_MERGED_COUNT = "merged_count"
 ATTR_TRACKED_PRESENT = "tracked_present"
 ATTR_DEBUG = "debug"
-ATTR_CATEGORY = "category"
-ATTR_REASON = "reason"
-ATTR_SOURCE_TEXT = "source_text"
 
 CATEGORY_MEDICAL = "medical"
 CATEGORY_MILITARY = "military"
@@ -38,12 +34,3 @@ CATEGORY_HELI = "helicopter"
 CATEGORY_BUSINESS = "business"
 CATEGORY_GA = "general_aviation"
 CATEGORY_CIVIL = "civil"
-
-COUNT_KEYS = [
-    CATEGORY_MEDICAL,
-    CATEGORY_MILITARY,
-    CATEGORY_HELI,
-    CATEGORY_BUSINESS,
-    CATEGORY_GA,
-    CATEGORY_CIVIL,
-]

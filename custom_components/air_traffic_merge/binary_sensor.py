@@ -20,8 +20,9 @@ async def async_setup_entry(
 
 
 class AirTrafficTrackedPresentBinarySensor(CoordinatorEntity[AirTrafficMergeCoordinator], BinarySensorEntity):
-    _attr_name = "Air Traffic Tracked Present"
+    _attr_name = "Tracked Present"
     _attr_icon = "mdi:radar"
+    _attr_has_entity_name = True
 
     def __init__(self, coordinator: AirTrafficMergeCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator)

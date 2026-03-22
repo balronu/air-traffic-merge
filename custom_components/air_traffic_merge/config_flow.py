@@ -22,14 +22,26 @@ from .const import (
 def _schema(defaults: dict[str, Any]) -> vol.Schema:
     return vol.Schema(
         {
-            vol.Required(CONF_ADSB_URL, default=defaults.get(CONF_ADSB_URL, "http://127.0.0.1:8080/data/aircraft.json")): str,
-            vol.Optional(CONF_FR24_ENTITY, default=defaults.get(CONF_FR24_ENTITY, "")): selector.EntitySelector(
+            vol.Required(
+                CONF_ADSB_URL,
+                default=defaults.get(CONF_ADSB_URL, "http://127.0.0.1:8080/data/aircraft.json"),
+            ): str,
+            vol.Optional(
+                CONF_FR24_ENTITY,
+                default=defaults.get(CONF_FR24_ENTITY, ""),
+            ): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain="sensor", multiple=False)
             ),
-            vol.Required(CONF_SCAN_INTERVAL, default=defaults.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)): selector.NumberSelector(
+            vol.Required(
+                CONF_SCAN_INTERVAL,
+                default=defaults.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+            ): selector.NumberSelector(
                 selector.NumberSelectorConfig(min=5, max=300, mode=selector.NumberSelectorMode.BOX, step=1)
             ),
-            vol.Required(CONF_MAX_ITEMS, default=defaults.get(CONF_MAX_ITEMS, DEFAULT_MAX_ITEMS)): selector.NumberSelector(
+            vol.Required(
+                CONF_MAX_ITEMS,
+                default=defaults.get(CONF_MAX_ITEMS, DEFAULT_MAX_ITEMS),
+            ): selector.NumberSelector(
                 selector.NumberSelectorConfig(min=5, max=250, mode=selector.NumberSelectorMode.BOX, step=1)
             ),
             vol.Optional(CONF_TRACKED_CALLSIGNS, default=defaults.get(CONF_TRACKED_CALLSIGNS, "")): str,

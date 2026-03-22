@@ -1,100 +1,39 @@
 # Air Traffic Merge Local
 
-Home Assistant custom integration for merging **local ADS-B data** from `readsb` / `adsb.im` with **optional** Flightradar24 data.
+Home Assistant Custom Integration für lokales ADS-B mit optionalem FR24-Merge.
 
-This repo is structured so you can upload it to GitHub as-is and add it to HACS as a custom repository.
+Diese Version ist auf `adsb.im` / `readsb` / `tar1090` JSON im Format von `aircraft.json` angepasst.
 
-## Highlights
+## Fixes in dieser Version
 
-- ADS-B-first design for `adsb.im` / `readsb`
-- FR24 entity is optional
-- UI setup through Config Flow
-- Main sensor with merged flights, counts, status and debug attributes
-- Extra count sensors for:
-  - Medical
-  - Military
-  - Helicopter
-  - Business
-  - General Aviation
-  - Civil
-- Binary sensor for tracked-aircraft presence
+- korrektes Mapping für `adsb.im`-Felder wie `r`, `t`, `desc`, `ownOp`, `flight`
+- kein Zugriff über `hass.helpers`
+- sauberer Config Flow ohne YAML
+- Hauptsensor `sensor.air_traffic_merged`
+- zusätzliche Kategorie-Sensoren
 
-## Repository structure
+## Einrichtung
 
-```text
-custom_components/air_traffic_merge/
-hacs.json
-README.md
-LICENSE
-.gitignore
-```
+1. Ordner `custom_components/air_traffic_merge` nach `/config/custom_components/` kopieren
+2. Home Assistant neu starten
+3. Integration hinzufügen: **Air Traffic Merge Local**
+4. ADS-B URL eintragen, z. B. `http://192.168.178.186:8080/data/aircraft.json`
+5. FR24 Entity optional setzen
 
-## Install with HACS
+## Sensoren
 
-1. Create a new GitHub repository, for example `air-traffic-merge-local`
-2. Upload the contents of this repo
-3. In HACS, open **Custom repositories**
-4. Add your GitHub repo URL
-5. Choose **Integration**
-6. Install **Air Traffic Merge Local**
-7. Restart Home Assistant
-
-## Manual install
-
-Copy this folder:
-
-```text
-custom_components/air_traffic_merge
-```
-
-into:
-
-```text
-/config/custom_components/air_traffic_merge
-```
-
-Then restart Home Assistant.
-
-## Setup
-
-After restart:
-
-1. Go to **Settings → Devices & Services**
-2. Click **Add Integration**
-3. Search for **Air Traffic Merge Local**
-4. Enter your ADS-B JSON URL, for example:
-
-```text
-http://YOUR-PI:8080/data/aircraft.json
-```
-
-5. Optionally add your FR24 entity, for example:
-
-```text
-sensor.flightradar24_current_in_area
-```
-
-## Created entities
-
-Main sensor:
-
-- `sensor.air_traffic_merge`
-
-Additional sensors:
-
-- `sensor.air_traffic_merge_medical`
-- `sensor.air_traffic_merge_military`
-- `sensor.air_traffic_merge_helicopter`
-- `sensor.air_traffic_merge_business`
-- `sensor.air_traffic_merge_general_aviation`
-- `sensor.air_traffic_merge_civil`
-
-Binary sensor:
-
+- `sensor.air_traffic_merged`
+- `sensor.air_traffic_medical`
+- `sensor.air_traffic_military`
+- `sensor.air_traffic_helicopter`
+- `sensor.air_traffic_business`
+- `sensor.air_traffic_general_aviation`
+- `sensor.air_traffic_civil`
 - `binary_sensor.air_traffic_tracked_present`
 
-## Notes
+## Beispiel für die Karte
 
-- Best fit for local feeds like `adsb.im` or `readsb`
-- The original idea and base structure come from `balronu/air-traffic-merge`
-- This package is cleaned up so you can publish it directly as your own repo
+```yaml
+type: custom:air-traffic-merge-card
+entity: sensor.air_traffic_merged
+```

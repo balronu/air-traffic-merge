@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from typing import Any
 
 from .const import (
@@ -18,88 +17,50 @@ from .const import (
 )
 
 TYPE_NAMES = {
-    "A139": "AgustaWestland AW139",
-    "A169": "Leonardo AW169",
-    "A3ST": "Airbus A330 MRTT",
-    "A400": "Airbus A400M Atlas",
-    "BK117": "MBB/Kawasaki BK117",
-    "C130": "Lockheed C-130 Hercules",
-    "C30J": "Lockheed Martin C-130J-30 Super Hercules",
-    "C17": "Boeing C-17 Globemaster III",
-    "EC35": "Airbus H135 / EC135",
-    "E3CF": "Boeing E-3 Sentry",
-    "E3TF": "Boeing E-3 Sentry",
-    "EUFI": "Eurofighter Typhoon",
-    "F16": "F-16 Fighting Falcon",
-    "F18": "F/A-18 Hornet",
+    "A321": "Airbus A321",
+    "A319": "Airbus A319",
+    "A20N": "Airbus A320neo",
+    "A21N": "Airbus A321neo",
+    "A359": "Airbus A350-900",
+    "A333": "Airbus A330-300",
+    "A332": "Airbus A330-200",
+    "B738": "Boeing 737-800",
+    "B38M": "Boeing 737 MAX 8",
+    "B789": "Boeing 787-9",
+    "DH8D": "De Havilland Dash 8 Q400",
+    "E190": "Embraer 190",
+    "FA7X": "Dassault Falcon 7X",
+    "EC35": "Eurocopter EC135/145",
     "H145": "Airbus H145",
-    "H160": "Airbus H160",
-    "K35R": "KC-135 Stratotanker",
-    "KC46": "KC-46 Pegasus",
-    "TOR": "Panavia Tornado",
-    "UH60": "Sikorsky UH-60 Black Hawk",
+    "LJ45": "Learjet 45",
+    "LJ35": "Learjet 35A",
+    "GLF6": "Gulfstream G650",
+    "GLF5": "Gulfstream G550",
+    "PC24": "Pilatus PC-24",
+    "C130": "Lockheed C-130 Hercules",
+    "A400": "Airbus A400M",
+    "KC35R": "Boeing KC-135R",
+    "E3TF": "Boeing E-3 Sentry",
 }
 
-FIGHTER_CODES = {"EUFI", "TOR", "F16", "F18"}
-TANKER_CODES = {"A3ST", "KC46", "KC35", "K35R", "K30T"}
-TRANSPORT_CODES = {"A400", "C130", "C30J", "C17"}
-AWACS_CODES = {"E3TF", "E3CF"}
-HELI_CODES = {"A139", "A169", "BK117", "EC35", "H145", "H160", "H64", "R44", "UH60"}
-BUSINESS_CODES = {"BE40", "GLF5", "GL7T", "LJ45", "PC12", "PC24", "C25A", "C25B", "C25C"}
+FIGHTER_CODES = {"EUFI", "F16", "F18", "TOR", "RAPT"}
+TANKER_CODES = {"KC35R", "K35R", "A330", "KC46"}
+TRANSPORT_CODES = {"C130", "A400", "C17", "C27J", "C160"}
+AWACS_CODES = {"E3TF", "E3CF", "P8", "R135", "U2"}
+HELI_CODES = {"EC35", "H145", "BK17", "A109", "R44", "B06", "AS32", "EC45", "EC55"}
+BUSINESS_CODES = {"FA7X", "E55P", "GLF5", "GLF6", "LJ35", "LJ45", "PC24", "C25A", "C25B", "C25C"}
 GA_CODES = {"C150", "C152", "C172", "DA40", "DA42", "P28A", "SR22"}
 
 MEDICAL_PREFIXES = ("CHX", "CHRISTOPH", "ADAC", "DRF", "LIFE", "REGA", "NHC", "ITH", "RTH")
 MILITARY_PREFIXES = (
-    "GAF",
-    "RCH",
-    "REACH",
-    "NATO",
-    "DUKE",
-    "ASCOT",
-    "SHEPHERD",
-    "MMF",
-    "IAM",
-    "BAF",
-    "ADF",
-    "HERKY",
-    "SAM",
-    "MC",
-    "PAT",
-    "QID",
-    "RRR",
-    "AME",
-    "HKY",
-    "CFC",
-    "CNV",
-    "PEGASUS",
-    "MOOSE",
-    "ROYAL",
-    "NAVY",
-    "LAGR",
-    "PACK",
-    "TABOR",
-    "SPAR",
+    "GAF", "RCH", "REACH", "NATO", "DUKE", "ASCOT", "SHEPHERD", "MMF", "IAM", "BAF", "ADF",
+    "HERKY", "SAM", "MC", "PAT", "QID", "RRR", "AME", "HKY", "CFC", "CNV", "PEGASUS", "MOOSE",
+    "ROYAL", "NAVY", "LAGR", "PACK", "TABOR", "SPAR",
 )
 MILITARY_MODEL_KEYWORDS = (
-    "AIR FORCE",
-    "LUFTWAFFE",
-    "ARMEE DE L AIR",
-    "ARMÉE DE L AIR",
-    "ROYAL AIR FORCE",
-    "USAF",
-    "NATO",
-    "A400M",
-    "C-130",
-    "C130",
-    "SUPER HERCULES",
-    "GLOBEMASTER",
-    "STRATOTANKER",
-    "PEGASUS",
-    "SENTRY",
-    "AWACS",
-    "EUROFIGHTER",
-    "TORNADO",
-    "BLACK HAWK",
+    "AIR FORCE", "LUFTWAFFE", "ARMEE DE L AIR", "ARMÉE DE L AIR", "ROYAL AIR FORCE", "USAF", "NATO",
+    "A400M", "C-130", "C130", "SUPER HERCULES", "GLOBEMASTER", "STRATOTANKER", "PEGASUS", "SENTRY",
+    "AWACS", "EUROFIGHTER", "TORNADO", "BLACK HAWK",
 )
 HELI_MODEL_KEYWORDS = ("H145", "EC145", "EC135", "H135", "BK117", "AW139", "AW169", "HELICOPTER", "HELIKOPTER", "ROBINSON", "BLACK HAWK")
 
@@ -110,6 +71,22 @@ def _clean(value: Any) -> str:
 
 def _upper(value: Any) -> str:
     return _clean(value).upper()
+
+
+def _fr24_callsign(f: dict[str, Any]) -> str:
+    return _clean(f.get("flight_number") or f.get("callsign") or f.get("flight"))
+
+
+def _fr24_registration(f: dict[str, Any]) -> str:
+    return _upper(f.get("aircraft_registration") or f.get("registration") or f.get("reg"))
+
+
+def _fr24_model(f: dict[str, Any]) -> str:
+    return _clean(f.get("aircraft_model") or f.get("model") or f.get("aircraft_type"))
+
+
+def _fr24_airline(f: dict[str, Any]) -> str:
+    return _clean(f.get("airline_short") or f.get("airline") or f.get("operator"))
 
 
 def _classify(callsign: str, registration: str, typecode: str, model: str, airline: str) -> tuple[str, str, int]:
@@ -184,13 +161,13 @@ def merge_flights(
     by_key: dict[str, dict[str, Any]] = {}
 
     for f in fr24_flights:
-        reg = _upper(f.get("aircraft_registration"))
-        fallback_key = f"fr24::{_upper(f.get('flight_number')) or _upper(f.get('aircraft_model')) or len(by_key)}"
+        reg = _fr24_registration(f)
+        fallback_key = f"fr24::{_upper(_fr24_callsign(f)) or _upper(_fr24_model(f)) or len(by_key)}"
         key = reg or fallback_key
         by_key.setdefault(key, {})["fr24"] = f
 
     for a in adsb_aircraft:
-        reg = _upper(a.get("r"))
+        reg = _upper(a.get("r") or a.get("registration"))
         hex_code = _upper(a.get("hex"))
         key = reg or hex_code or f"adsb::{_upper(a.get('flight')) or len(by_key)}"
         by_key.setdefault(key, {})["adsb"] = a
@@ -211,12 +188,12 @@ def merge_flights(
         f = item.get("fr24", {})
         a = item.get("adsb", {})
 
-        callsign = _clean(a.get("flight")) or _clean(f.get("flight_number"))
-        registration = _upper(a.get("r")) or _upper(f.get("aircraft_registration"))
-        typecode = _upper(a.get("t"))
-        model = _clean(TYPE_NAMES.get(typecode)) or _clean(f.get("aircraft_model"))
-        airline = _clean(f.get("airline_short"))
-        name = _clean(f.get("flight_number")) or callsign or registration or _upper(a.get("hex")) or "Unbekannt"
+        callsign = _clean(a.get("flight")) or _fr24_callsign(f)
+        registration = _upper(a.get("r") or a.get("registration")) or _fr24_registration(f)
+        typecode = _upper(a.get("t") or a.get("typecode") or a.get("aircraft_type"))
+        model = _clean(a.get("desc") or TYPE_NAMES.get(typecode) or _fr24_model(f))
+        airline = _clean(a.get("ownOp") or a.get("op") or _fr24_airline(f))
+        name = _fr24_callsign(f) or callsign or registration or _upper(a.get("hex")) or "Unbekannt"
 
         category, reason, priority = _classify(callsign, registration, typecode, model, airline)
         source_text, source_prio = _source_text(bool(f), bool(a))
@@ -267,15 +244,19 @@ def merge_flights(
         else:
             counts["civil"] += 1
 
-    flights.sort(key=lambda x: (0 if x["tracked"] else 1, x["priority"], x["source_prio"], x["dist_km"], x["name"]))
+    flights.sort(key=lambda x: (bool(x["tracked"]) is False, x["priority"], x["source_prio"], x["dist_km"]))
     flights = flights[:max_items]
+
+    last_update = None
+    if adsb_aircraft:
+        last_update = adsb_aircraft[0].get("seen")
 
     return {
         "flights": flights,
-        "last_update": int(datetime.now(UTC).timestamp()),
+        "counts": counts,
         "fr24_count": len(fr24_flights),
         "adsb_count": len(adsb_aircraft),
         "merged_count": merged_count,
-        "counts": counts,
         "tracked_present": tracked_present,
+        "last_update": last_update,
     }
