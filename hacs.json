@@ -1,5 +1,9 @@
 {
-  "name": "Air Traffic Merge",
+  "name": "Air Traffic Merge Local",
+  "content_in_root": false,
   "render_readme": true,
-  "homeassistant": "2025.1.0"
+  "domains": [
+    "air_traffic_merge"
+  ],
+  "homeassistant": "2024.1.0"
 }

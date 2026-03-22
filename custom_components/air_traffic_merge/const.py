@@ -1,36 +1,49 @@
+"""Constants for Air Traffic Merge."""
+
 from __future__ import annotations
 
 DOMAIN = "air_traffic_merge"
-PLATFORMS = ["sensor"]
 
-CONF_FR24_ENTITY = "fr24_entity"
 CONF_ADSB_URL = "adsb_url"
+CONF_FR24_ENTITY = "fr24_entity"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_MAX_ITEMS = "max_items"
 CONF_TRACKED_CALLSIGNS = "tracked_callsigns"
 CONF_TRACKED_REGISTRATIONS = "tracked_registrations"
 
-DEFAULT_SCAN_INTERVAL = 10
+DEFAULT_SCAN_INTERVAL = 15
 DEFAULT_MAX_ITEMS = 50
 
 ATTR_FLIGHTS = "flights"
-ATTR_LAST_UPDATE = "last_update"
+ATTR_COUNTS = "counts"
 ATTR_STATUS = "status"
+ATTR_LAST_UPDATE = "last_update"
 ATTR_FR24_COUNT = "fr24_count"
 ATTR_ADSB_COUNT = "adsb_count"
 ATTR_MERGED_COUNT = "merged_count"
-ATTR_COUNTS = "counts"
-ATTR_DEBUG = "debug"
 ATTR_TRACKED_PRESENT = "tracked_present"
+ATTR_DEBUG = "debug"
+ATTR_CATEGORY = "category"
+ATTR_REASON = "reason"
+ATTR_SOURCE_TEXT = "source_text"
 
-CATEGORY_MEDICAL = "🚑 Medical"
-CATEGORY_MILITARY = "🪖 Militär"
-CATEGORY_MILITARY_FIGHTER = "⚔️ Militär – Fighter"
-CATEGORY_MILITARY_TANKER = "⛽ Militär – Tanker"
-CATEGORY_MILITARY_TRANSPORT = "📦 Militär – Transport"
-CATEGORY_MILITARY_ISR = "📡 Militär – Aufklärung"
-CATEGORY_MILITARY_HELI = "🪖 Militär – Helikopter"
-CATEGORY_HELI = "🚁 Helikopter"
-CATEGORY_BUSINESS = "💼 Business Jet"
-CATEGORY_GA = "🛩️ General Aviation"
-CATEGORY_CIVIL = "✈️ Zivil"
+CATEGORY_MEDICAL = "medical"
+CATEGORY_MILITARY = "military"
+CATEGORY_MILITARY_FIGHTER = "military_fighter"
+CATEGORY_MILITARY_TANKER = "military_tanker"
+CATEGORY_MILITARY_TRANSPORT = "military_transport"
+CATEGORY_MILITARY_ISR = "military_isr"
+CATEGORY_MILITARY_HELI = "military_helicopter"
+CATEGORY_HELI = "helicopter"
+CATEGORY_BUSINESS = "business"
+CATEGORY_GA = "general_aviation"
+CATEGORY_CIVIL = "civil"
+
+COUNT_KEYS = [
+    CATEGORY_MEDICAL,
+    CATEGORY_MILITARY,
+    CATEGORY_HELI,
+    CATEGORY_BUSINESS,
+    CATEGORY_GA,
+    CATEGORY_CIVIL,
+]

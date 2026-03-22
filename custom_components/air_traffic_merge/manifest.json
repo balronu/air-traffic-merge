@@ -1,11 +1,9 @@
 {
   "domain": "air_traffic_merge",
-  "name": "Air Traffic Merge",
-  "version": "2.0.1",
-  "documentation": "https://github.com/balronu/air-traffic-merge",
-  "issue_tracker": "https://github.com/balronu/air-traffic-merge/issues",
+  "name": "Air Traffic Merge Local",
+  "version": "1.1.0",
   "config_flow": true,
-  "codeowners": ["@balronu"],
   "iot_class": "local_polling",
-  "loggers": ["custom_components.air_traffic_merge"]
+  "integration_type": "hub",
+  "requirements": []
 }

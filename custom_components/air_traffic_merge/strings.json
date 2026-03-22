@@ -1,18 +1,9 @@
 {
-  "title": "Air Traffic Merge",
   "config": {
     "step": {
       "user": {
-        "title": "Air Traffic Merge einrichten",
-        "description": "FR24 Entity und ADS-B URL auswählen",
-        "data": {
-          "fr24_entity": "FR24 Entity",
-          "adsb_url": "ADS-B URL",
-          "scan_interval": "Scan-Intervall (Sekunden)",
-          "max_items": "Maximale Anzahl Flüge",
-          "tracked_callsigns": "Überwachte Callsigns (kommagetrennt)",
-          "tracked_registrations": "Überwachte Kennungen (kommagetrennt)"
-        }
+        "title": "Air Traffic Merge",
+        "description": "Verbinde lokale ADS-B-Daten mit optionalen FR24-Daten."
       }
     }
   },
@@ -20,24 +11,8 @@
     "step": {
       "init": {
         "title": "Air Traffic Merge Optionen",
-        "data": {
-          "scan_interval": "Scan-Intervall (Sekunden)",
-          "max_items": "Maximale Anzahl Flüge",
-          "tracked_callsigns": "Überwachte Callsigns (kommagetrennt)",
-          "tracked_registrations": "Überwachte Kennungen (kommagetrennt)"
-        }
+        "description": "Passe Polling und Tracking an."
       }
-    }
-  },
-  "entity": {
-    "sensor": {
-      "main": { "name": "Air Traffic Merged" },
-      "count_medical": { "name": "Medical" },
-      "count_military": { "name": "Militär" },
-      "count_helicopter": { "name": "Helikopter" },
-      "count_business": { "name": "Business" },
-      "count_general_aviation": { "name": "General Aviation" },
-      "count_civil": { "name": "Zivil" }
     }
   }
 }

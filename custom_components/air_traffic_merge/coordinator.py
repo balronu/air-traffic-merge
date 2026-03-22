@@ -35,6 +35,7 @@ from .merge import merge_flights
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class AirTrafficMergeCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     config_entry: ConfigEntry
 
@@ -42,8 +43,9 @@ class AirTrafficMergeCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.hass = hass
         self.config_entry = entry
         options = {**entry.data, **entry.options}
-        self.fr24_entity = entry.data[CONF_FR24_ENTITY]
-        self.adsb_url = entry.data[CONF_ADSB_URL]
+
+        self.fr24_entity = str(options.get(CONF_FR24_ENTITY, "")).strip()
+        self.adsb_url = str(options[CONF_ADSB_URL]).strip()
         self.max_items = int(options.get(CONF_MAX_ITEMS, DEFAULT_MAX_ITEMS))
         self.tracked_callsigns = str(options.get(CONF_TRACKED_CALLSIGNS, ""))
         self.tracked_registrations = str(options.get(CONF_TRACKED_REGISTRATIONS, ""))
@@ -57,11 +59,12 @@ class AirTrafficMergeCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=timedelta(seconds=scan_interval),
         )
 
-        self._unsub_state = async_track_state_change_event(
-            hass,
-            [self.fr24_entity],
-            self._handle_fr24_change,
-        )
+        if self.fr24_entity:
+            self._unsub_state = async_track_state_change_event(
+                hass,
+                [self.fr24_entity],
+                self._handle_fr24_change,
+            )
 
     async def async_shutdown(self) -> None:
         if self._unsub_state:
@@ -73,11 +76,16 @@ class AirTrafficMergeCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.async_set_updated_data(self._build_data_from_current_state())
 
     def _build_data_from_current_state(self) -> dict[str, Any]:
-        fr24_state = self.hass.states.get(self.fr24_entity)
-        if fr24_state is None:
-            raise UpdateFailed(f"FR24 entity not found: {self.fr24_entity}")
+        fr24_flights: list[dict[str, Any]] = []
+        fr24_error = None
 
-        fr24_flights = list(fr24_state.attributes.get("flights", []))
+        if self.fr24_entity:
+            fr24_state = self.hass.states.get(self.fr24_entity)
+            if fr24_state is None:
+                fr24_error = f"FR24 entity not found: {self.fr24_entity}"
+            else:
+                fr24_flights = list(fr24_state.attributes.get("flights", []))
+
         adsb_aircraft = getattr(self, "_last_adsb_aircraft", [])
         adsb_now = getattr(self, "_last_adsb_now", None)
         adsb_error = getattr(self, "_last_adsb_error", None)
@@ -110,6 +118,7 @@ class AirTrafficMergeCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ATTR_TRACKED_PRESENT: merged["tracked_present"],
             ATTR_DEBUG: {
                 "fr24_entity": self.fr24_entity,
+                "fr24_error": fr24_error,
                 "adsb_url": self.adsb_url,
                 "adsb_now": adsb_now,
                 "adsb_error": adsb_error,
@@ -128,10 +137,13 @@ class AirTrafficMergeCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             async with session.get(self.adsb_url, timeout=ClientTimeout(total=8)) as response:
                 response.raise_for_status()
                 payload = await response.json()
-            self._last_adsb_aircraft = list(payload.get("aircraft", []))
-            self._last_adsb_now = payload.get("now")
+                self._last_adsb_aircraft = list(payload.get("aircraft", []))
+                self._last_adsb_now = payload.get("now")
         except (ClientError, TimeoutError, ValueError) as err:
             self._last_adsb_error = str(err)
             _LOGGER.warning("Could not fetch ADS-B data from %s: %s", self.adsb_url, err)
 
-        return self._build_data_from_current_state()
+        data = self._build_data_from_current_state()
+        if data[ATTR_STATUS] == "empty" and self._last_adsb_error:
+            raise UpdateFailed(self._last_adsb_error)
+        return data

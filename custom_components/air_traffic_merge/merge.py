@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import Any
 
 from .const import (
@@ -22,9 +22,6 @@ TYPE_NAMES = {
     "A169": "Leonardo AW169",
     "A3ST": "Airbus A330 MRTT",
     "A400": "Airbus A400M Atlas",
-    "A20N": "Airbus A320neo",
-    "A21N": "Airbus A321neo",
-    "B38M": "Boeing 737 MAX 8",
     "BK117": "MBB/Kawasaki BK117",
     "C130": "Lockheed C-130 Hercules",
     "C30J": "Lockheed Martin C-130J-30 Super Hercules",
@@ -48,34 +45,72 @@ TANKER_CODES = {"A3ST", "KC46", "KC35", "K35R", "K30T"}
 TRANSPORT_CODES = {"A400", "C130", "C30J", "C17"}
 AWACS_CODES = {"E3TF", "E3CF"}
 HELI_CODES = {"A139", "A169", "BK117", "EC35", "H145", "H160", "H64", "R44", "UH60"}
-BUSINESS_CODES = {"BE40", "GLF5", "GL7T", "LJ45", "PC12"}
-GA_CODES = {"C150", "C152", "C172", "DA40", "DA42"}
+BUSINESS_CODES = {"BE40", "GLF5", "GL7T", "LJ45", "PC12", "PC24", "C25A", "C25B", "C25C"}
+GA_CODES = {"C150", "C152", "C172", "DA40", "DA42", "P28A", "SR22"}
 
 MEDICAL_PREFIXES = ("CHX", "CHRISTOPH", "ADAC", "DRF", "LIFE", "REGA", "NHC", "ITH", "RTH")
 MILITARY_PREFIXES = (
-    "GAF", "RCH", "REACH", "NATO", "DUKE", "ASCOT", "SHEPHERD", "MMF",
-    "IAM", "BAF", "ADF", "HERKY", "SAM", "MC", "PAT", "QID", "RRR",
-    "AME", "HKY", "CFC", "CNV", "PEGASUS", "MOOSE", "ROYAL", "NAVY",
-    "LAGR", "PACK", "TABOR", "SPAR",
+    "GAF",
+    "RCH",
+    "REACH",
+    "NATO",
+    "DUKE",
+    "ASCOT",
+    "SHEPHERD",
+    "MMF",
+    "IAM",
+    "BAF",
+    "ADF",
+    "HERKY",
+    "SAM",
+    "MC",
+    "PAT",
+    "QID",
+    "RRR",
+    "AME",
+    "HKY",
+    "CFC",
+    "CNV",
+    "PEGASUS",
+    "MOOSE",
+    "ROYAL",
+    "NAVY",
+    "LAGR",
+    "PACK",
+    "TABOR",
+    "SPAR",
 )
 MILITARY_MODEL_KEYWORDS = (
-    "AIR FORCE", "LUFTWAFFE", "ARMEE DE L AIR", "ARMÉE DE L AIR", "ROYAL AIR FORCE",
-    "USAF", "NATO", "A400M", "C-130", "C130", "SUPER HERCULES", "GLOBEMASTER",
-    "STRATOTANKER", "PEGASUS", "SENTRY", "AWACS", "EUROFIGHTER", "TORNADO", "BLACK HAWK",
+    "AIR FORCE",
+    "LUFTWAFFE",
+    "ARMEE DE L AIR",
+    "ARMÉE DE L AIR",
+    "ROYAL AIR FORCE",
+    "USAF",
+    "NATO",
+    "A400M",
+    "C-130",
+    "C130",
+    "SUPER HERCULES",
+    "GLOBEMASTER",
+    "STRATOTANKER",
+    "PEGASUS",
+    "SENTRY",
+    "AWACS",
+    "EUROFIGHTER",
+    "TORNADO",
+    "BLACK HAWK",
 )
 HELI_MODEL_KEYWORDS = ("H145", "EC145", "EC135", "H135", "BK117", "AW139", "AW169", "HELICOPTER", "HELIKOPTER", "ROBINSON", "BLACK HAWK")
+
 
 def _clean(value: Any) -> str:
     return str(value or "").strip()
 
+
 def _upper(value: Any) -> str:
     return _clean(value).upper()
 
-def _reg_key(value: Any) -> str:
-    return _upper(value)
-
-def _hex_key(value: Any) -> str:
-    return _upper(value)
 
 def _classify(callsign: str, registration: str, typecode: str, model: str, airline: str) -> tuple[str, str, int]:
     callsign_u = _upper(callsign)
@@ -85,13 +120,13 @@ def _classify(callsign: str, registration: str, typecode: str, model: str, airli
     airline_u = _upper(airline)
 
     is_medical = callsign_u.startswith(MEDICAL_PREFIXES)
-    is_military = False
     is_heli = type_u in HELI_CODES or any(word in model_u for word in HELI_MODEL_KEYWORDS)
 
+    is_military = False
     if callsign_u.startswith(MILITARY_PREFIXES):
         is_military = True
         reason = "Erkannt über Callsign"
-    elif "+" in reg_u or ("-" in reg_u and reg_u[:2].isdigit()):
+    elif "+" in reg_u or ("-" in reg_u and len(reg_u) > 1 and reg_u[:2].isdigit()):
         is_military = True
         reason = "Erkannt über militärische Registrierung"
     elif any(word in model_u or word in airline_u for word in MILITARY_MODEL_KEYWORDS):
@@ -122,6 +157,7 @@ def _classify(callsign: str, registration: str, typecode: str, model: str, airli
         return CATEGORY_GA, "Erkannt über Typecode", 30
     return CATEGORY_CIVIL, "Standard-Fallback", 50
 
+
 def _source_text(has_fr24: bool, has_adsb: bool) -> tuple[str, int]:
     if has_fr24 and has_adsb:
         return "✅ FR24 + ADS-B verfügbar", 0
@@ -129,8 +165,10 @@ def _source_text(has_fr24: bool, has_adsb: bool) -> tuple[str, int]:
         return "⚠️ Nur FR24 verfügbar", 1
     return "📡 Nur ADS-B empfangen", 2
 
+
 def _tracked(callsign: str, registration: str, tracked_callsigns: set[str], tracked_regs: set[str]) -> bool:
     return _upper(callsign) in tracked_callsigns or _upper(registration) in tracked_regs
+
 
 def merge_flights(
     fr24_flights: list[dict[str, Any]],
@@ -146,17 +184,16 @@ def merge_flights(
     by_key: dict[str, dict[str, Any]] = {}
 
     for f in fr24_flights:
-        reg = _reg_key(f.get("aircraft_registration"))
+        reg = _upper(f.get("aircraft_registration"))
         fallback_key = f"fr24::{_upper(f.get('flight_number')) or _upper(f.get('aircraft_model')) or len(by_key)}"
         key = reg or fallback_key
         by_key.setdefault(key, {})["fr24"] = f
 
     for a in adsb_aircraft:
-        reg = _reg_key(a.get("r"))
-        hex_code = _hex_key(a.get("hex"))
+        reg = _upper(a.get("r"))
+        hex_code = _upper(a.get("hex"))
         key = reg or hex_code or f"adsb::{_upper(a.get('flight')) or len(by_key)}"
-        slot = by_key.setdefault(key, {})
-        slot["adsb"] = a
+        by_key.setdefault(key, {})["adsb"] = a
 
     flights: list[dict[str, Any]] = []
     counts = {
@@ -183,9 +220,9 @@ def merge_flights(
 
         category, reason, priority = _classify(callsign, registration, typecode, model, airline)
         source_text, source_prio = _source_text(bool(f), bool(a))
-
         tracked = _tracked(callsign, registration, tracked_cs, tracked_regs)
         tracked_present = tracked_present or tracked
+
         if f and a:
             merged_count += 1
 
@@ -204,9 +241,9 @@ def merge_flights(
             "dir_deg": round(float(a.get("r_dir", 0) or 0)),
             "alt_m": round(float(a.get("alt_baro", 0) or 0) * 0.3048) if a else None,
             "spd_kmh": round(float(a.get("gs", 0) or 0) * 1.852) if a else None,
+            "tracked": tracked,
             "priority": priority,
             "source_prio": source_prio,
-            "tracked": tracked,
         }
         flights.append(flight)
 
