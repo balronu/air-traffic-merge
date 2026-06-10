@@ -1,0 +1,64 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Air Traffic Merge",
+        "description": "Choose your FR24 sensor, ADS-B source (URL or entity), and tracking (callsign/registration).",
+        "data": {
+          "source_mode": "Source",
+          "enable_tracking": "Enable tracking"
+        }
+      },
+      "fr24": {
+        "title": "FR24 Sensor",
+        "description": "Select your Flightradar24 sensor (must have attribute `flights`).",
+        "data": {
+          "fr24_entity": "FR24 Sensor"
+        }
+      },
+      "adsb_source": {
+        "title": "ADS-B Source",
+        "description": "Choose ADS-B via URL (aircraft.json) or an existing sensor entity.",
+        "data": {
+          "adsb_source": "ADS-B source",
+          "scan_interval": "Interval (sec)"
+        }
+      },
+      "adsb_url": {
+        "title": "ADS-B URL",
+        "description": "Enter the aircraft.json URL. Example: `http://192.168.178.186:8080/data/aircraft.json`",
+        "data": {
+          "adsb_url": "ADS-B URL"
+        }
+      },
+      "adsb_entity": {
+        "title": "ADS-B Entity",
+        "description": "Select a sensor that provides an `aircraft` attribute.",
+        "data": {
+          "adsb_entity": "ADS-B sensor"
+        }
+      },
+      "tracking_mode": {
+        "title": "Tracking Mode",
+        "description": "Choose callsign, registration, or both.",
+        "data": {
+          "track_mode": "Tracking mode"
+        }
+      },
+      "tracking_values": {
+        "title": "Tracking Values",
+        "description": "Separate multiple values with commas, e.g. `CHX16,CHX18` or `D-HXYZ,D-ABCD`.",
+        "data": {
+          "track_callsigns": "Callsigns",
+          "track_registrations": "Registrations"
+        }
+      }
+    },
+    "error": {
+      "invalid_source_mode": "Invalid source selection.",
+      "missing_entity": "Please select an entity.",
+      "invalid_url": "Please enter a valid URL.",
+      "invalid_track_mode": "Invalid tracking mode."
+    }
+  }
+}

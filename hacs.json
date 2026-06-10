@@ -1,5 +1,5 @@
 {
-  "name": "Air Traffic Merge Local",
+  "name": "Air Traffic Merge",
   "content_in_root": false,
   "render_readme": true,
   "domains": ["air_traffic_merge"]

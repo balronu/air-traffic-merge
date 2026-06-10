@@ -1,14 +1,11 @@
 {
   "domain": "air_traffic_merge",
-  "name": "Air Traffic Merge Local",
-  "version": "1.3.0",
-  "config_flow": true,
-  "iot_class": "local_polling",
-  "integration_type": "hub",
+  "name": "Air Traffic Merge (FR24 + ADS-B)",
+  "version": "1.3.1",
+  "documentation": "https://github.com/balronu/air-traffic-merge",
+  "issue_tracker": "https://github.com/balronu/air-traffic-merge/issues",
   "requirements": [],
-  "documentation": "https://github.com/USERNAME/air-traffic-merge-local",
-  "issue_tracker": "https://github.com/USERNAME/air-traffic-merge-local/issues",
-  "codeowners": [
-    "@USERNAME"
-  ]
+  "codeowners": ["@balronu"],
+  "config_flow": true,
+  "iot_class": "local_polling"
 }
